@@ -1,38 +1,95 @@
 package com.example.controller;
 
+import com.example.dto.CreateTopicRequest;
+import com.example.entity.Topic;
+import com.example.service.TopicService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/topics")
+@RequiredArgsConstructor
 public class TopicController {
 
-    // 1. 创建投票接口（前端C会调这个）
-    @PostMapping
-    public Map<String, Object> createTopic(@RequestBody Map<String, String> params) {
-        // 注意：目前还没连数据库，我们直接返回假数据，让前端C能先调通
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", 200);
-        response.put("msg", "创建成功（模拟数据）");
+    private final TopicService topicService;
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("id", 1L); // 假ID，等连了数据库就变真实ID
-        response.put("data", data);
+    @PostMapping
+    public Map<String, Object> createTopic(@RequestBody CreateTopicRequest request,
+                                           HttpServletRequest httpRequest) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            String title = request.getTitle();
+            String description = request.getDescription();
+            Integer type = request.getType();
+            List<String> options = request.getOptions();
+
+            if (title == null || title.trim().isEmpty()) {
+                response.put("code", 400);
+                response.put("msg", "标题不能为空");
+                return response;
+            }
+            if (options == null || options.size() < 2) {
+                response.put("code", 400);
+                response.put("msg", "至少需要2个选项");
+                return response;
+            }
+            if (type == null || type < 1 || type > 3) {
+                response.put("code", 400);
+                response.put("msg", "题型参数错误：1单选 2多选 3填空");
+                return response;
+            }
+
+            String ip = httpRequest.getRemoteAddr();
+            Topic topic = topicService.createTopic(title, description, type, options, ip);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("id", topic.getId());
+            response.put("code", 200);
+            response.put("msg", "创建成功");
+            response.put("data", data);
+
+        } catch (Exception e) {
+            response.put("code", 500);
+            response.put("msg", "创建失败：" + e.getMessage());
+        }
 
         return response;
     }
 
-    // 2. 获取投票详情接口（前端C看详情时调）
     @GetMapping("/{id}")
     public Map<String, Object> getTopic(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
-        response.put("code", 200);
+
+        Topic topic = topicService.getTopicById(id);
+
+        if (topic == null) {
+            response.put("code", 404);
+            response.put("msg", "投票不存在");
+            return response;
+        }
 
         Map<String, Object> data = new HashMap<>();
-        data.put("id", id);
-        data.put("title", "这是测试投票标题");
-        data.put("options", new String[]{"选项A", "选项B", "选项C"});
+        data.put("id", topic.getId());
+        data.put("title", topic.getTitle());
+        data.put("description", topic.getDescription());
+        data.put("type", topic.getType());
+        data.put("status", topic.getStatus());
+        data.put("createdAt", topic.getCreatedAt());
+
+        if (topic.getOptions() != null) {
+            List<String> optionTexts = topic.getOptions().stream()
+                    .map(opt -> opt.getOptionText())
+                    .toList();
+            data.put("options", optionTexts);
+        }
+
+        response.put("code", 200);
         response.put("data", data);
 
         return response;
