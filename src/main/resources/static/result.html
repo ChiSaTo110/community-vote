@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投票结果</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light py-5">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-sm-12">
+            <h2 class="text-center mb-4" id="resultTitle">加载中...</h2>
+
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                <button class="btn btn-primary btn-sm" id="pieBtn">饼图</button>
+                <button class="btn btn-outline-secondary btn-sm" id="barBtn">柱状图</button>
+                <button class="btn btn-outline-success btn-sm ms-auto" id="copyLinkBtn">复制投票链接</button>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div id="chart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0">AI 分析报告</h5></div>
+                <div class="card-body">
+                    <div id="aiReport" class="text-muted">正在生成AI报告...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function getQueryParam(name) {
+        return new URLSearchParams(window.location.search).get(name);
+    }
+    const topicId = getQueryParam('id');
+    let chartInstance = null;
+    let chartData = [];
+
+    // 初始化/切换图表
+    function renderChart(type = 'pie') {
+        if (!chartInstance) {
+            chartInstance = echarts.init(document.getElementById('chart'));
+            window.addEventListener('resize', () => chartInstance.resize());
+        }
+
+        const option = type === 'pie' ? {
+            title: { text: '投票结果分布', left: 'center' },
+            tooltip: { trigger: 'item', formatter: '{b}: {c}票 ({d}%)' },
+            legend: { orient: 'vertical', left: 'left', bottom: 0 },
+            series: [{
+                type: 'pie', radius: '60%', data: chartData,
+                emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } }
+            }]
+        } : {
+            title: { text: '投票结果统计', left: 'center' },
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: chartData.map(i => i.name) },
+            yAxis: { type: 'value', name: '票数' },
+            series: [{ type: 'bar', data: chartData.map(i => i.value), itemStyle: { color: '#409eff' } }]
+        };
+        chartInstance.setOption(option, true);
+    }
+
+    // 加载结果数据
+    function loadResults() {
+        if (!topicId) {
+            document.getElementById('resultTitle').textContent = '无效的投票ID';
+            return;
+        }
+
+        axios.get(`/api/topics/${topicId}`).then(res => {
+            document.getElementById('resultTitle').textContent = res.data.title + ' - 结果';
+        });
+
+        axios.get(`/api/topics/${topicId}/results`).then(res => {
+            chartData = res.data.map(item => ({
+                name: item.content || item.name,
+                value: item.count || item.voteCount
+            }));
+            renderChart('pie');
+        }).catch(err => {
+            console.error('加载结果失败:', err);
+            document.getElementById('resultTitle').textContent = '加载结果失败';
+        });
+    }
+
+    // 加载AI报告
+    function loadAiReport() {
+        if (!topicId) return;
+        axios.get(`/api/ai/report/${topicId}`).then(res => {
+            const report = typeof res.data === 'string' ? res.data : (res.data.report || res.data.content);
+            document.getElementById('aiReport').textContent = report;
+            document.getElementById('aiReport').classList.remove('text-muted');
+        }).catch(() => {
+            document.getElementById('aiReport').textContent = 'AI报告生成失败';
+        });
+    }
+
+    // 图表切换事件
+    document.getElementById('pieBtn').onclick = function() {
+        this.className = 'btn btn-primary btn-sm';
+        document.getElementById('barBtn').className = 'btn btn-outline-secondary btn-sm';
+        renderChart('pie');
+    };
+    document.getElementById('barBtn').onclick = function() {
+        this.className = 'btn btn-primary btn-sm';
+        document.getElementById('pieBtn').className = 'btn btn-outline-secondary btn-sm';
+        renderChart('bar');
+    };
+
+    // 复制投票链接
+    document.getElementById('copyLinkBtn').onclick = function() {
+        const url = `${window.location.origin}/vote.html?id=${topicId}`;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('投票链接已复制到剪贴板');
+        }).catch(() => {
+            const input = document.createElement('input');
+            input.value = url;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            alert('投票链接已复制');
+        });
+    };
+
+    window.onload = function() {
+        loadResults();
+        loadAiReport();
+    };
+</script>
+</body>
+</html>
