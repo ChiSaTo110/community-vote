@@ -2,17 +2,76 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>创建投票</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 40px 0;
+        }
+        .card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: #4A90D9;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: #357ABD;
+            transform: scale(1.02);
+        }
+        .btn-outline-primary {
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .btn-outline-primary:hover {
+            transform: scale(1.02);
+        }
+        .option-item .form-control {
+            border-radius: 8px 0 0 8px;
+        }
+        .option-item .btn-outline-danger {
+            border-radius: 0 8px 8px 0;
+        }
+        .form-check-input:checked {
+            background-color: #4A90D9;
+            border-color: #4A90D9;
+        }
+        #optionList {
+            transition: all 0.3s ease;
+        }
+        #optionList.hidden {
+            display: none !important;
+        }
+        h2 {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #34495e;
+        }
+    </style>
 </head>
-<body class="bg-light py-5">
+<body>
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-6 col-md-8 col-sm-10">
             <h2 class="text-center mb-4">📊 创建新投票</h2>
             <div class="card shadow-sm">
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form id="createForm">
                         <!-- 投票标题 -->
                         <div class="mb-3">
@@ -31,10 +90,14 @@
                                 <input class="form-check-input" type="radio" name="voteType" id="multiType" value="multiple" />
                                 <label class="form-check-label" for="multiType">多选</label>
                             </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="voteType" id="fillType" value="fill" />
+                                <label class="form-check-label" for="fillType">填空</label>
+                            </div>
                         </div>
 
-                        <!-- 投票选项 -->
-                        <div class="mb-3">
+                        <!-- 投票选项（单选/多选时显示，填空时隐藏） -->
+                        <div class="mb-3" id="optionSection">
                             <label class="form-label">投票选项</label>
                             <div id="optionList">
                                 <div class="input-group mb-2 option-item">
@@ -60,22 +123,36 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js">
 </script>
 <script>
-    // 动态添加选项
+    // ===== 题型切换：填空时隐藏选项区域 =====
+    var typeRadios = document.querySelectorAll('input[name="voteType"]');
+    var optionSection = document.getElementById('optionSection');
+
+    typeRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            if (this.value === 'fill') {
+                optionSection.style.display = 'none';
+            } else {
+                optionSection.style.display = 'block';
+            }
+        });
+    });
+
+    // ===== 动态添加选项 =====
     document.getElementById('addOptionBtn').addEventListener('click', function() {
-        const optionList = document.getElementById('optionList');
-        const newOption = document.createElement('div');
+        var optionList = document.getElementById('optionList');
+        var newOption = document.createElement('div');
         newOption.className = 'input-group mb-2 option-item';
         newOption.innerHTML = `
-                <input type="text" class="form-control option-input" placeholder="选项内容" required />
-                <button class="btn btn-outline-danger del-btn" type="button">删除</button>
-            `;
+            <input type="text" class="form-control option-input" placeholder="选项内容" required />
+            <button class="btn btn-outline-danger del-btn" type="button">删除</button>
+        `;
         optionList.appendChild(newOption);
     });
 
-    // 删除选项（至少保留2个）
+    // ===== 删除选项（至少保留2个） =====
     document.getElementById('optionList').addEventListener('click', function(e) {
         if (e.target.classList.contains('del-btn')) {
-            const items = document.querySelectorAll('.option-item');
+            var items = document.querySelectorAll('.option-item');
             if (items.length > 2) {
                 e.target.closest('.option-item').remove();
             } else {
@@ -84,36 +161,46 @@
         }
     });
 
-    // 提交创建投票
+    // ===== 提交创建投票 =====
     document.getElementById('createForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const title = document.getElementById('topicTitle').value.trim();
-        const typeMap = { 'single': 1, 'multiple': 2 };
-        const type = typeMap[document.querySelector('input[name="voteType"]:checked').value];
-        const options = Array.from(document.querySelectorAll('.option-input'))
-            .map(input => input.value.trim())
-            .filter(val => val !== '');
+        var title = document.getElementById('topicTitle').value.trim();
+        var typeMap = { 'single': 1, 'multiple': 2, 'fill': 3 };
+        var type = typeMap[document.querySelector('input[name="voteType"]:checked').value];
 
         if (!title) {
             alert('请输入投票标题');
             return;
         }
-        if (options.length < 2) {
-            alert('请至少填写2个有效选项');
-            return;
+
+        var requestData = {
+            title: title,
+            type: type
+        };
+
+        // 填空：不传 options
+        if (type === 3) {
+            // 填空不需要选项
+        } else {
+            // 单选/多选：收集选项
+            var options = Array.from(document.querySelectorAll('.option-input'))
+                .map(function(input) { return input.value.trim(); })
+                .filter(function(val) { return val !== ''; });
+
+            if (options.length < 2) {
+                alert('请至少填写2个有效选项');
+                return;
+            }
+            requestData.options = options;
         }
 
-        axios.post('/api/topics', {
-                title: title,
-                type: type,
-                options: options
-            })
-            .then(res => {
-                const topicId = res.data.data.id;
+        axios.post('/api/topics', requestData)
+            .then(function(res) {
+                var topicId = res.data.data.id;
                 window.location.href = 'vote.html?id=' + topicId;
             })
-            .catch(err => {
+            .catch(function(err) {
                 console.error('创建失败:', err);
                 alert('创建失败，请检查后端服务是否正常');
             });

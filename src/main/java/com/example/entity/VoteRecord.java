@@ -19,12 +19,17 @@ public class VoteRecord {
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
 
+    // 修改：允许为空（填空时没有选项）
     @ManyToOne
-    @JoinColumn(name = "option_id", nullable = false)
+    @JoinColumn(name = "option_id")
     private VoteOption option;
 
     @Column(name = "ip_address", nullable = false, length = 50)
     private String ipAddress;
+
+    // 新增：填空内容
+    @Column(name = "fill_content", columnDefinition = "TEXT")
+    private String fillContent;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

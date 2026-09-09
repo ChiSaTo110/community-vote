@@ -129,49 +129,19 @@
             });
     }
 
-   function loadAiReport() {
-    if (!topicId) return;
-
-    var el = document.getElementById('aiReport');
-    el.textContent = '⏳ 正在生成AI报告，请稍候...';
-    el.classList.remove('text-muted');
-
-    axios.get('/api/ai/report/' + topicId, { timeout: 30000 })
-        .then(function(res) {
-            console.log('AI报告响应:', res.data);  // 调试日志
-
-            // 兼容多种返回格式：
-            // 1. { code: 200, data: "报告文本" }
-            // 2. { code: 200, report: "报告文本" }
-            // 3. { code: 200, content: "报告文本" }
-            // 4. 直接返回字符串 "报告文本"
-            var report = null;
-            if (typeof res.data === 'string') {
-                report = res.data;
-            } else if (res.data.data && typeof res.data.data === 'string') {
-                report = res.data.data;
-            } else if (res.data.report && typeof res.data.report === 'string') {
-                report = res.data.report;
-            } else if (res.data.content && typeof res.data.content === 'string') {
-                report = res.data.content;
-            } else {
-                // 如果都不是，把整个对象转为字符串显示（方便调试）
-                report = JSON.stringify(res.data, null, 2);
-            }
-
-            el.textContent = report;
-            el.classList.remove('text-muted');
-        })
-        .catch(function(err) {
-            console.error('AI报告加载失败:', err);
-            if (err.code === 'ECONNABORTED') {
-                el.textContent = '⏰ AI报告生成超时（超过30秒），请稍后刷新页面重试';
-            } else {
-                el.textContent = '❌ AI报告生成失败，请检查后端服务是否正常';
-            }
-            el.classList.remove('text-muted');
-        });
-}
+    function loadAiReport() {
+        if (!topicId) return;
+        axios.get('/api/ai/report/' + topicId)
+            .then(function(res) {
+                var report = res.data.data;
+                var el = document.getElementById('aiReport');
+                el.textContent = report;
+                el.classList.remove('text-muted');
+            })
+            .catch(function() {
+                document.getElementById('aiReport').textContent = 'AI报告生成失败，请稍后重试';
+            });
+    }
 
     document.getElementById('pieBtn').onclick = function() {
         this.className = 'btn btn-primary btn-sm';

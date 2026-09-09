@@ -1,5 +1,7 @@
 package com.example.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,6 +16,7 @@ public class VoteOption {
 
     @ManyToOne
     @JoinColumn(name = "topic_id", nullable = false)
+    @JsonBackReference
     private Topic topic;
 
     @Column(name = "option_text", nullable = false, length = 100)

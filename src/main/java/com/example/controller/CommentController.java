@@ -3,6 +3,8 @@ package com.example.controller;
 import com.example.entity.Comment;
 import com.example.repository.CommentRepository;
 import com.example.service.AiService;
+import com.example.utils.IpUtil;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +31,9 @@ public class CommentController {
         Comment comment = new Comment();
         comment.setTopicId(topicId);
         comment.setContent(content);
-        comment.setIpAddress(request.getRemoteAddr());
+        String ip = IpUtil.getRealIp(request);
+        comment.setIpAddress(ip);
+
 
         // AI自动情感标注
         String sentiment = aiService.analyzeSentiment(content);
