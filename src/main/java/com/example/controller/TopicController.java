@@ -82,11 +82,17 @@ public class TopicController {
         data.put("status", topic.getStatus());
         data.put("createdAt", topic.getCreatedAt());
 
+        // 返回包含 id 和 optionText 的对象数组
         if (topic.getOptions() != null) {
-            List<String> optionTexts = topic.getOptions().stream()
-                    .map(opt -> opt.getOptionText())
+            List<Map<String, Object>> optionList = topic.getOptions().stream()
+                    .map(opt -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("id", opt.getId());
+                        map.put("optionText", opt.getOptionText());
+                        return map;
+                    })
                     .toList();
-            data.put("options", optionTexts);
+            data.put("options", optionList);
         }
 
         response.put("code", 200);

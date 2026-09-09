@@ -1,45 +1,48 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>创建投票</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body class="bg-light py-5">
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-6 col-md-8 col-sm-10">
-            <h2 class="text-center mb-4">创建新投票</h2>
+            <h2 class="text-center mb-4">📊 创建新投票</h2>
             <div class="card shadow-sm">
                 <div class="card-body">
                     <form id="createForm">
+                        <!-- 投票标题 -->
                         <div class="mb-3">
                             <label for="topicTitle" class="form-label">投票标题</label>
-                            <input type="text" class="form-control" id="topicTitle" placeholder="请输入投票标题" required>
+                            <input type="text" class="form-control" id="topicTitle" placeholder="请输入投票标题" required />
                         </div>
 
+                        <!-- 投票类型 -->
                         <div class="mb-3">
                             <label class="form-label">投票类型</label>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="voteType" id="singleType" value="single" checked>
+                                <input class="form-check-input" type="radio" name="voteType" id="singleType" value="single" checked />
                                 <label class="form-check-label" for="singleType">单选</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="voteType" id="multiType" value="multiple">
+                                <input class="form-check-input" type="radio" name="voteType" id="multiType" value="multiple" />
                                 <label class="form-check-label" for="multiType">多选</label>
                             </div>
                         </div>
 
+                        <!-- 投票选项 -->
                         <div class="mb-3">
                             <label class="form-label">投票选项</label>
                             <div id="optionList">
                                 <div class="input-group mb-2 option-item">
-                                    <input type="text" class="form-control option-input" placeholder="选项内容" required>
+                                    <input type="text" class="form-control option-input" placeholder="选项内容" required />
                                     <button class="btn btn-outline-danger del-btn" type="button">删除</button>
                                 </div>
                                 <div class="input-group mb-2 option-item">
-                                    <input type="text" class="form-control option-input" placeholder="选项内容" required>
+                                    <input type="text" class="form-control option-input" placeholder="选项内容" required />
                                     <button class="btn btn-outline-danger del-btn" type="button">删除</button>
                                 </div>
                             </div>
@@ -54,8 +57,8 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js">
+</script>
 <script>
     // 动态添加选项
     document.getElementById('addOptionBtn').addEventListener('click', function() {
@@ -63,7 +66,7 @@
         const newOption = document.createElement('div');
         newOption.className = 'input-group mb-2 option-item';
         newOption.innerHTML = `
-                <input type="text" class="form-control option-input" placeholder="选项内容" required>
+                <input type="text" class="form-control option-input" placeholder="选项内容" required />
                 <button class="btn btn-outline-danger del-btn" type="button">删除</button>
             `;
         optionList.appendChild(newOption);
@@ -86,27 +89,35 @@
         e.preventDefault();
 
         const title = document.getElementById('topicTitle').value.trim();
-        const type = document.querySelector('input[name="voteType"]:checked').value;
+        const typeMap = { 'single': 1, 'multiple': 2 };
+        const type = typeMap[document.querySelector('input[name="voteType"]:checked').value];
         const options = Array.from(document.querySelectorAll('.option-input'))
             .map(input => input.value.trim())
-            .filter(val => val);
+            .filter(val => val !== '');
 
+        if (!title) {
+            alert('请输入投票标题');
+            return;
+        }
         if (options.length < 2) {
             alert('请至少填写2个有效选项');
             return;
         }
 
-        axios.post('/api/topics', { title, type, options })
+        axios.post('/api/topics', {
+                title: title,
+                type: type,
+                options: options
+            })
             .then(res => {
-                const topicId = res.data.id || res.data;
-                window.location.href = `result.html?id=${topicId}`;
+                const topicId = res.data.data.id;
+                window.location.href = 'vote.html?id=' + topicId;
             })
             .catch(err => {
                 console.error('创建失败:', err);
-                alert('创建失败，请检查后端接口');
+                alert('创建失败，请检查后端服务是否正常');
             });
     });
 </script>
 </body>
 </html>
->
