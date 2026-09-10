@@ -16,11 +16,9 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
 
     boolean existsByTopicIdAndIpAddress(Long topicId, String ipAddress);
 
-    // 修改：通过投票记录的 userId 查询用户参与过的所有话题ID（去重）
     @Query("SELECT DISTINCT v.topic.id FROM VoteRecord v WHERE v.userId = :userId")
     List<Long> findDistinctTopicIdsByUserId(@Param("userId") Long userId);
 
-    // 新增：统计某个话题的总投票数
     @Query("SELECT COUNT(v) FROM VoteRecord v WHERE v.topic.id = :topicId")
     Long countByTopicId(@Param("topicId") Long topicId);
 }

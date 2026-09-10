@@ -11,7 +11,7 @@ const USER_KEY = 'vote_user';
 // 创建 axios 实例
 const api = axios.create({
     baseURL: '',
-    timeout: 15000
+    timeout: 35000  // AI 报告较慢，设置 35 秒
 });
 
 // 请求拦截器：自动添加 Token
@@ -130,23 +130,42 @@ const VoteAPI = {
     }
 };
 
-// ========== 评论相关 ==========
+// ========== 评论相关（修改点：适配后端统一返回格式） ==========
 const CommentAPI = {
     // 评论列表 GET /api/comments/{topicId}
+    // 后端返回：{code:200, data:[...]} → 提取 data 数组
     getList(topicId) {
-        return api.get(`/api/comments/${topicId}`);
+        return api.get(`/api/comments/${topicId}`).then(res => {
+            if (res && res.code === 200 && Array.isArray(res.data)) {
+                return res.data;
+            }
+            return [];
+        });
     },
     // 发表评论 POST /api/comments (form参数)
+    // 后端返回：{code:200, data:{...}} → 提取 data 对象
     add(topicId, content) {
-        return api.post(`/api/comments?topicId=${topicId}&content=${encodeURIComponent(content)}`);
+        return api.post(`/api/comments?topicId=${topicId}&content=${encodeURIComponent(content)}`)
+            .then(res => {
+                if (res && res.code === 200) {
+                    return res.data;
+                }
+                throw new Error(res && res.msg ? res.msg : '评论失败');
+            });
     }
 };
 
-// ========== AI 相关 ==========
+// ========== AI 相关（修改点：适配后端统一返回格式） ==========
 const AiAPI = {
     // AI报告 GET /api/ai/report/{id}
+    // 后端返回：{code:200, data:"报告文本"} → 提取 data 文本
     getReport(id) {
-        return api.get(`/api/ai/report/${id}`, { responseType: 'text' });
+        return api.get(`/api/ai/report/${id}`).then(res => {
+            if (res && res.code === 200 && res.data) {
+                return res.data;
+            }
+            throw new Error(res && res.msg ? res.msg : 'AI报告生成失败');
+        });
     }
 };
 

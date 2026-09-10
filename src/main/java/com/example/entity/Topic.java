@@ -1,11 +1,10 @@
 package com.example.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Data
 @Entity
@@ -30,17 +29,17 @@ public class Topic {
     @Column(name = "creator_ip", length = 50)
     private String creatorIp;
 
+    @Column(name = "user_id")
+    private Long userId;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "user_id")
-    private Long userId;
-
     @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference 
+    @JsonManagedReference
     private List<VoteOption> options;
 
     @PrePersist
