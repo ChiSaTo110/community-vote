@@ -48,13 +48,25 @@ public class VoteService {
             return result;
         }
 
-        // 3. IP 限投检查
-        boolean alreadyVoted = voteRecordRepository.existsByTopicIdAndIpAddress(topicId, ipAddress);
-        if (alreadyVoted) {
-            log.warn("IP {} 重复投票，topicId={}", ipAddress, topicId);
-            result.put("success", false);
-            result.put("message", "您已经投过票了，不能重复投票");
-            return result;
+        // 3. 限投检查
+        // - 已登录用户：按 userId 限投（每个用户对同一话题只能投一次）
+        // - 未登录游客：按 IP 限投（每个IP对同一话题只能投一次）
+        if (userId != null) {
+            boolean userVoted = voteRecordRepository.existsByTopicIdAndUserId(topicId, userId);
+            if (userVoted) {
+                log.warn("用户 {} 重复投票，topicId={}", userId, topicId);
+                result.put("success", false);
+                result.put("message", "您已经投过票了，不能重复投票");
+                return result;
+            }
+        } else {
+            boolean ipVoted = voteRecordRepository.existsByTopicIdAndIpAddress(topicId, ipAddress);
+            if (ipVoted) {
+                log.warn("IP {} 重复投票，topicId={}", ipAddress, topicId);
+                result.put("success", false);
+                result.put("message", "您已经投过票了，不能重复投票");
+                return result;
+            }
         }
 
         Integer type = topic.getType();
@@ -103,7 +115,7 @@ public class VoteService {
                 result.put("message", "请填写内容");
                 return result;
             }
-            // 真正保存填空记录
+            // 保存填空记录
             VoteRecord record = new VoteRecord();
             record.setTopic(topic);
             record.setOption(null);

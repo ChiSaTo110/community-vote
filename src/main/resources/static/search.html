@@ -88,24 +88,45 @@
 
                 emptyEl.style.display = 'none';
                 listEl.innerHTML = list.map(t => {
-                    const typeInfo = TOPIC_TYPE[t.type] || { name: '未知', icon: '?' };
-                    const optionCount = t.optionCount || (t.options ? t.options.length : 0);
-                    const voteCount = t.voteCount || t.participantCount || t.total || 0;
-                    return `
-                        <div class="topic-card" onclick="navigateTo('vote.html?id=${t.id}')">
-                            <div class="d-flex gap-2 mb-2">
-                                <span class="badge badge-primary">${typeInfo.icon} ${typeInfo.name}</span>
-                                ${t.status === 2 ? '<span class="badge badge-secondary">已结束</span>' : ''}
-                            </div>
-                            <div class="topic-card-title">${highlightKeyword(escapeHtml(t.title), keyword)}</div>
-                            ${t.description ? `<div class="topic-card-desc">${highlightKeyword(escapeHtml(t.description), keyword)}</div>` : ''}
-                            <div class="topic-card-meta">
-                                <span>📋 ${optionCount} 个选项</span>
-                                <span>👥 ${voteCount} 人参与</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+    const typeInfo = TOPIC_TYPE[t.type] || { name: '未知', icon: '?' };
+    const nickname = t.creatorNickname || '匿名用户';
+    const username = t.creatorUsername || 'anonymous';
+    const avatar = t.creatorAvatar;
+    const avatarHtml = avatar
+        ? `<img src="${avatar}" class="topic-avatar" alt="avatar">`
+        : `<div class="topic-avatar">${nickname.charAt(0).toUpperCase()}</div>`;
+
+    return `
+        <div class="topic-card" onclick="navigateTo('vote.html?id=${t.id}')">
+            <div class="topic-card-header">
+                ${avatarHtml}
+                <div class="topic-user-info">
+                    <div class="topic-user-name">${escapeHtml(nickname)}</div>
+                    <div class="topic-user-meta">@${escapeHtml(username)} · ${formatTimeAgo(t.createdAt)}</div>
+                </div>
+            </div>
+            <div class="topic-card-body">
+                <div class="topic-card-title">${highlightKeyword(escapeHtml(t.title), keyword)}</div>
+                ${t.description ? `<div class="topic-card-desc">${highlightKeyword(escapeHtml(t.description), keyword)}</div>` : ''}
+                <div class="topic-card-tags">
+                    <span class="badge badge-primary">${typeInfo.icon} ${typeInfo.name}</span>
+                    <span class="badge badge-success">📋 ${t.optionCount || 0} 个选项</span>
+                </div>
+            </div>
+            <div class="topic-card-footer" onclick="event.stopPropagation()">
+                <button class="topic-action" onclick="shareTopic(${t.id})">
+                    <span class="action-icon">🔗</span> 分享
+                </button>
+                <button class="topic-action" onclick="goComment(${t.id})">
+                    <span class="action-icon">💬</span> ${t.commentCount || 0}
+                </button>
+                <button class="topic-action" onclick="likeTopic(${t.id})">
+                    <span class="action-icon">👍</span> ${t.likeCount || 0}
+                </button>
+            </div>
+        </div>
+    `;
+}).join('');
             }).catch(() => {
                 document.getElementById('resultCount').textContent = '搜索接口暂未开放';
                 listEl.innerHTML = '';

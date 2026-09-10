@@ -16,6 +16,8 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
 
     boolean existsByTopicIdAndIpAddress(Long topicId, String ipAddress);
 
+    boolean existsByTopicIdAndUserId(Long topicId, Long userId);
+
     @Query("SELECT DISTINCT v.topic.id FROM VoteRecord v WHERE v.userId = :userId")
     List<Long> findDistinctTopicIdsByUserId(@Param("userId") Long userId);
 

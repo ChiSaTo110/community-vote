@@ -41,6 +41,7 @@
                         </div>
                     </div>
                     <h2 id="resultTitle" style="margin:0 0 8px; font-size:1.4rem;"></h2>
+                    <div id="resultMeta"></div>
                     <p id="resultDesc" class="text-muted" style="margin:0; line-height:1.6;"></p>
                 </div>
             </div>
@@ -165,23 +166,44 @@
         }
 
         function renderTopicInfo() {
-            document.getElementById('resultView').style.display = 'block';
-            const typeInfo = TOPIC_TYPE[topicData.type] || { name: '未知', icon: '?' };
-            document.getElementById('typeBadge').textContent = `${typeInfo.icon} ${typeInfo.name}`;
-            document.getElementById('resultTitle').textContent = topicData.title;
-            document.getElementById('resultDesc').textContent = topicData.description || '暂无描述';
+    document.getElementById('resultView').style.display = 'block';
+    const typeInfo = TOPIC_TYPE[topicData.type] || { name: '未知', icon: '?' };
+    document.getElementById('typeBadge').textContent = `${typeInfo.icon} ${typeInfo.name}`;
+    document.getElementById('resultTitle').textContent = topicData.title;
+    document.getElementById('resultDesc').textContent = topicData.description || '暂无描述';
 
-            const status = TOPIC_STATUS[topicData.status] || { text: '未知', class: 'badge-warning' };
-            const statusBadge = document.getElementById('statusBadge');
-            statusBadge.textContent = status.text;
-            statusBadge.className = `badge ${status.class}`;
+    // 发起人信息
+    const nickname = topicData.creatorNickname || '匿名用户';
+    const username = topicData.creatorUsername || 'anonymous';
+    const avatar = topicData.creatorAvatar;
+    const creatorHtml = avatar
+        ? `<img src="${avatar}" class="topic-avatar" alt="avatar" style="width:32px;height:32px;">`
+        : `<div class="topic-avatar" style="width:32px;height:32px;font-size:0.85rem;">${nickname.charAt(0).toUpperCase()}</div>`;
 
-            document.getElementById('totalOptions').textContent = topicData.options ? topicData.options.length : 0;
+    // 在标题下方插入发起人信息
+    const metaEl = document.getElementById('resultMeta');
+    if (metaEl) {
+        metaEl.innerHTML = `
+            <div class="topic-card-header" style="margin:8px 0 0;">
+                ${creatorHtml}
+                <div class="topic-user-info">
+                    <div class="topic-user-name">${escapeHtml(nickname)}</div>
+                    <div class="topic-user-meta">@${escapeHtml(username)} · ${formatTimeAgo(topicData.createdAt)}</div>
+                </div>
+            </div>
+        `;
+    }
 
-            document.getElementById('goVoteBtn').onclick = () => navigateTo(`vote.html?id=${topicId}`);
-            document.getElementById('noDataVoteLink').onclick = () => navigateTo(`vote.html?id=${topicId}`);
-            document.getElementById('copyBtn').onclick = copyVoteLink;
-        }
+    const status = TOPIC_STATUS[topicData.status] || { text: '未知', class: 'badge-warning' };
+    const statusBadge = document.getElementById('statusBadge');
+    statusBadge.textContent = status.text;
+    statusBadge.className = `badge ${status.class}`;
+
+    document.getElementById('totalOptions').textContent = topicData.options ? topicData.options.length : 0;
+    document.getElementById('goVoteBtn').onclick = () => navigateTo(`vote.html?id=${topicId}`);
+    document.getElementById('noDataVoteLink').onclick = () => navigateTo(`vote.html?id=${topicId}`);
+    document.getElementById('copyBtn').onclick = copyVoteLink;
+}
 
         function renderResult(data) {
             const labels = data.labels || [];

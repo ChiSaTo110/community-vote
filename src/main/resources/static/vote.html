@@ -117,34 +117,54 @@
         }
 
         function renderTopic() {
-            document.getElementById('notFoundView').style.display = 'none';
-            document.getElementById('voteView').style.display = 'block';
-            const typeInfo = TOPIC_TYPE[topicData.type] || { name: '未知', icon: '?' };
-            document.getElementById('typeBadge').textContent = `${typeInfo.icon} ${typeInfo.name}`;
-            document.getElementById('voteTitle').textContent = topicData.title;
-            document.getElementById('voteDesc').textContent = topicData.description || '暂无描述';
-            document.getElementById('voteMeta').textContent = `创建时间：${formatTime(topicData.createdAt)} · 投票 ID：${topicData.id}`;
+    document.getElementById('notFoundView').style.display = 'none';
+    document.getElementById('voteView').style.display = 'block';
+    const typeInfo = TOPIC_TYPE[topicData.type] || { name: '未知', icon: '?' };
+    document.getElementById('typeBadge').textContent = `${typeInfo.icon} ${typeInfo.name}`;
+    document.getElementById('voteTitle').textContent = topicData.title;
+    document.getElementById('voteDesc').textContent = topicData.description || '暂无描述';
 
-            const status = TOPIC_STATUS[topicData.status] || { text: '未知', class: 'badge-warning' };
-            const statusBadge = document.getElementById('statusBadge');
-            statusBadge.textContent = status.text;
-            statusBadge.className = `badge ${status.class}`;
+    // 顶部发起人信息
+    const nickname = topicData.creatorNickname || '匿名用户';
+    const username = topicData.creatorUsername || 'anonymous';
+    const avatar = topicData.creatorAvatar;
+    const creatorHtml = avatar
+        ? `<img src="${avatar}" class="topic-avatar" alt="avatar">`
+        : `<div class="topic-avatar">${nickname.charAt(0).toUpperCase()}</div>`;
 
-            if (topicData.status === 2) {
-                document.getElementById('submitBtn').disabled = true;
-                document.getElementById('submitBtn').textContent = '投票已结束';
-            }
+    document.getElementById('voteMeta').innerHTML = `
+        <div class="topic-card-header" style="margin-bottom:8px;">
+            ${creatorHtml}
+            <div class="topic-user-info">
+                <div class="topic-user-name">${escapeHtml(nickname)}</div>
+                <div class="topic-user-meta">@${escapeHtml(username)} · ${formatTimeAgo(topicData.createdAt)}</div>
+            </div>
+        </div>
+        <div style="font-size:0.82rem; color:var(--text-light);">
+            📋 ${topicData.optionCount || topicData.options?.length || 0} 个选项 · 👥 ${topicData.voteCount || 0} 人参与
+        </div>
+    `;
 
-            document.getElementById('viewResultLink').onclick = () => navigateTo(`result.html?id=${topicId}`);
+    const status = TOPIC_STATUS[topicData.status] || { text: '未知', class: 'badge-warning' };
+    const statusBadge = document.getElementById('statusBadge');
+    statusBadge.textContent = status.text;
+    statusBadge.className = `badge ${status.class}`;
 
-            if (topicData.type === 3) {
-                document.getElementById('optionContainer').style.display = 'none';
-                document.getElementById('fillContainer').style.display = 'block';
-            } else {
-                document.getElementById('fillContainer').style.display = 'none';
-                renderOptions();
-            }
-        }
+    if (topicData.status === 2) {
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').textContent = '投票已结束';
+    }
+
+    document.getElementById('viewResultLink').onclick = () => navigateTo(`result.html?id=${topicId}`);
+
+    if (topicData.type === 3) {
+        document.getElementById('optionContainer').style.display = 'none';
+        document.getElementById('fillContainer').style.display = 'block';
+    } else {
+        document.getElementById('fillContainer').style.display = 'none';
+        renderOptions();
+    }
+}
 
         function renderOptions() {
             const isMultiple = topicData.type === 2;

@@ -6,9 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "vote_record", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"topic_id", "ip_address"})
-})
+@Table(name = "vote_record")
 public class VoteRecord {
 
     @Id

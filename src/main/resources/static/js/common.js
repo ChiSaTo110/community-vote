@@ -219,3 +219,37 @@ function requireLogin() {
     }
     return true;
 }
+
+// ========== 相对时间格式化（贴吧风格） ==========
+function formatTimeAgo(timeStr) {
+    if (!timeStr) return '';
+    const d = new Date(timeStr);
+    if (isNaN(d.getTime())) return timeStr;
+    const diff = Date.now() - d.getTime();
+    const min = 60 * 1000;
+    const hour = 60 * min;
+    const day = 24 * hour;
+    if (diff < min) return '刚刚';
+    if (diff < hour) return Math.floor(diff / min) + ' 分钟前';
+    if (diff < day) return Math.floor(diff / hour) + ' 小时前';
+    if (diff < 30 * day) return Math.floor(diff / day) + ' 天前';
+    return formatTime(timeStr).slice(0, 10);
+}
+
+// ========== 话题操作：分享 / 评论 / 点赞 ==========
+function shareTopic(topicId) {
+    const url = `${window.location.origin}/vote.html?id=${topicId}`;
+    copyToClipboard(url).then(() => {
+        showToast('投票链接已复制，快去分享吧！', 'success');
+    }).catch(() => {
+        showToast('复制失败，请手动复制', 'error');
+    });
+}
+
+function goComment(topicId) {
+    navigateTo(`result.html?id=${topicId}#comments`);
+}
+
+function likeTopic(topicId) {
+    showToast('点赞功能即将上线', 'info');
+}

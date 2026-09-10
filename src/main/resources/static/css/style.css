@@ -1006,3 +1006,101 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     .success-actions { flex-direction: column; }
     .success-actions .btn { width: 100%; }
 }
+
+/* ============================================================
+   贴吧风格话题卡片
+   ============================================================ */
+.topic-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.topic-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.topic-user-info {
+    flex: 1;
+    min-width: 0;
+}
+.topic-user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+    line-height: 1.3;
+}
+.topic-user-meta {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+
+.topic-card-body {
+    margin-bottom: 12px;
+}
+.topic-card-body .topic-card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.topic-card-body .topic-card-desc {
+    font-size: 0.88rem;
+    color: var(--text-sub);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.topic-card-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.topic-card-footer {
+    display: flex;
+    gap: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+}
+.topic-action {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 0;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.topic-action:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+.topic-action .action-icon {
+    font-size: 1rem;
+}
