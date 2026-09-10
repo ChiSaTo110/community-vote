@@ -193,3 +193,46 @@ function requireLogin() {
     }
     return true;
 }
+
+
+// ========== 最近访问记录存储 ==========
+const RecentStore = {
+    KEY: 'recent_topics',
+    MAX: 20,
+
+    // 添加一条记录
+    add(id, title, type) {
+        try {
+            const list = this.get();
+            // 去重：如果已存在相同id，先删除
+            const filtered = list.filter(item => item.id !== id);
+            // 插入到最前面
+            filtered.unshift({
+                id: id,
+                title: title,
+                type: type,
+                time: Date.now()
+            });
+            // 限制最大数量
+            const trimmed = filtered.slice(0, this.MAX);
+            localStorage.setItem(this.KEY, JSON.stringify(trimmed));
+        } catch (e) {
+            console.warn('RecentStore.add 失败:', e);
+        }
+    },
+
+    // 获取所有记录
+    get() {
+        try {
+            const data = localStorage.getItem(this.KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
+    },
+
+    // 清空记录
+    clear() {
+        localStorage.removeItem(this.KEY);
+    }
+};

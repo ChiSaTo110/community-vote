@@ -84,6 +84,8 @@
     <script src="js/api.js"></script>
     <script src="js/common.js"></script>
     <script>
+        // 页面初始化：先确保错误提示隐藏
+        document.getElementById('notFoundView').style.display = 'none';
         renderNavbar();
 
         const topicId = getQueryParam('id');
@@ -99,6 +101,7 @@
         function loadTopic() {
             TopicAPI.getDetail(topicId).then(res => {
                 document.getElementById('loadingView').style.display = 'none';
+                document.getElementById('notFoundView').style.display = 'none';
                 if (res.code !== 200 || !res.data) {
                     document.getElementById('notFoundView').style.display = 'block';
                     return;
@@ -114,6 +117,7 @@
         }
 
         function renderTopic() {
+            document.getElementById('notFoundView').style.display = 'none';
             document.getElementById('voteView').style.display = 'block';
             const typeInfo = TOPIC_TYPE[topicData.type] || { name: '未知', icon: '?' };
             document.getElementById('typeBadge').textContent = `${typeInfo.icon} ${typeInfo.name}`;
