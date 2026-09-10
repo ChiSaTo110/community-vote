@@ -2,8 +2,8 @@
  * 投票系统 - 公共工具函数
  */
 
-// ========== 页面加载淡入 ==========
-window.addEventListener('load', () => {
+// ========== 页面加载淡入（pageshow在从bfcache后退恢复时也会触发，避免空白） ==========
+window.addEventListener('pageshow', () => {
     document.body.classList.add('page-loaded');
 });
 
@@ -26,10 +26,9 @@ function showToast(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
-// ========== 页面跳转（带淡出过渡） ==========
+// ========== 页面跳转（直接跳转，避免bfcache后退时页面空白） ==========
 function navigateTo(url) {
-    document.body.classList.remove('page-loaded');
-    setTimeout(() => { window.location.href = url; }, 250);
+    window.location.href = url;
 }
 
 // ========== URL参数获取 ==========
@@ -95,11 +94,43 @@ function maskIp(ip) {
     return ip;
 }
 
+// ========== 最近访问记录存储 ==========
+const RecentStore = {
+    KEY: 'recent_topics',
+    MAX: 20,
+
+    add(id, title, type) {
+        try {
+            const list = this.get();
+            const filtered = list.filter(item => item.id !== id);
+            filtered.unshift({
+                id: id,
+                title: title,
+                type: type,
+                time: Date.now()
+            });
+            const trimmed = filtered.slice(0, this.MAX);
+            localStorage.setItem(this.KEY, JSON.stringify(trimmed));
+        } catch (e) {
+            console.warn('RecentStore.add 失败:', e);
+        }
+    },
+
+    get() {
+        try {
+            const data = localStorage.getItem(this.KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
+    },
+
+    clear() {
+        localStorage.removeItem(this.KEY);
+    }
+};
+
 // ========== 统一导航栏渲染 ==========
-/**
- * 渲染顶部导航栏
- * @param {string} activePage - 当前激活的页面: home/create/search/profile
- */
 function renderNavbar(activePage = '') {
     const isLoggedIn = typeof Auth !== 'undefined' && Auth.isLoggedIn();
     const user = isLoggedIn ? Auth.getUser() : null;
@@ -143,7 +174,6 @@ function renderNavbar(activePage = '') {
         </nav>
     `;
 
-    // 插入到body最前面
     const placeholder = document.getElementById('navbar-placeholder');
     if (placeholder) {
         placeholder.outerHTML = navHtml;
@@ -151,7 +181,6 @@ function renderNavbar(activePage = '') {
         document.body.insertAdjacentHTML('afterbegin', navHtml);
     }
 
-    // 高亮当前页
     if (activePage) {
         document.querySelectorAll('.navbar a').forEach(a => {
             if (a.getAttribute('href') === `${activePage}.html`) {
@@ -161,7 +190,6 @@ function renderNavbar(activePage = '') {
     }
 }
 
-// 导航栏搜索
 function handleNavSearch(e) {
     e.preventDefault();
     const keyword = document.getElementById('navSearchInput').value.trim();
@@ -172,7 +200,6 @@ function handleNavSearch(e) {
     }
 }
 
-// 退出登录
 function handleLogout() {
     if (typeof Auth !== 'undefined') {
         Auth.logout();
@@ -184,7 +211,6 @@ function handleLogout() {
     setTimeout(() => navigateTo('index.html'), 800);
 }
 
-// ========== 登录守卫：需要登录的页面调用 ==========
 function requireLogin() {
     if (typeof Auth !== 'undefined' && !Auth.isLoggedIn()) {
         showToast('请先登录', 'warning');
@@ -193,46 +219,3 @@ function requireLogin() {
     }
     return true;
 }
-
-
-// ========== 最近访问记录存储 ==========
-const RecentStore = {
-    KEY: 'recent_topics',
-    MAX: 20,
-
-    // 添加一条记录
-    add(id, title, type) {
-        try {
-            const list = this.get();
-            // 去重：如果已存在相同id，先删除
-            const filtered = list.filter(item => item.id !== id);
-            // 插入到最前面
-            filtered.unshift({
-                id: id,
-                title: title,
-                type: type,
-                time: Date.now()
-            });
-            // 限制最大数量
-            const trimmed = filtered.slice(0, this.MAX);
-            localStorage.setItem(this.KEY, JSON.stringify(trimmed));
-        } catch (e) {
-            console.warn('RecentStore.add 失败:', e);
-        }
-    },
-
-    // 获取所有记录
-    get() {
-        try {
-            const data = localStorage.getItem(this.KEY);
-            return data ? JSON.parse(data) : [];
-        } catch (e) {
-            return [];
-        }
-    },
-
-    // 清空记录
-    clear() {
-        localStorage.removeItem(this.KEY);
-    }
-};
