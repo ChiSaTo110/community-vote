@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索 - 线上投票调研系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="container" style="max-width:800px;">
+        <div class="search-page-header">
+            <h1 class="search-page-title">搜索结果：<strong id="keywordDisplay">-</strong></h1>
+            <p class="search-result-count" id="resultCount">正在搜索...</p>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="card mb-4" style="padding:16px;">
+            <form class="nav-search" style="max-width:100%;" onsubmit="handleSearch(event)">
+                <input type="text" class="nav-search-input" id="searchInput" placeholder="输入关键词搜索话题..." style="font-size:1rem; padding:10px 0;">
+                <button type="submit" class="nav-search-btn" style="width:40px; height:40px; font-size:1rem;">🔍</button>
+            </form>
+        </div>
+
+        <!-- 结果列表 -->
+        <div id="resultList" class="topic-card-list">
+            <div class="text-center py-5">
+                <div class="spinner" style="margin:0 auto 12px;"></div>
+                <p class="text-muted">搜索中...</p>
+            </div>
+        </div>
+
+        <!-- 空结果 -->
+        <div id="emptyResult" class="search-empty" style="display:none;">
+            <div class="search-empty-icon">🔍</div>
+            <h3 style="margin:0 0 8px;">未找到相关话题</h3>
+            <p class="text-muted">换个关键词试试，或者<a href="create.html">发起一个新投票</a></p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>线上投票调研系统 · 软件项目综合实践</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        renderNavbar('search');
+
+        const keyword = getQueryParam('keyword') || '';
+        document.getElementById('keywordDisplay').textContent = keyword || '全部';
+        document.getElementById('searchInput').value = keyword;
+
+        // 搜索
+        function handleSearch(e) {
+            e.preventDefault();
+            const kw = document.getElementById('searchInput').value.trim();
+            if (kw) {
+                navigateTo(`search.html?keyword=${encodeURIComponent(kw)}`);
+            }
+        }
+
+        // 执行搜索
+        function doSearch() {
+            const listEl = document.getElementById('resultList');
+            const emptyEl = document.getElementById('emptyResult');
+
+            if (!keyword) {
+                document.getElementById('resultCount').textContent = '请输入关键词';
+                listEl.innerHTML = '';
+                emptyEl.style.display = 'block';
+                emptyEl.querySelector('h3').textContent = '请输入搜索关键词';
+                return;
+            }
+
+            TopicAPI.search(keyword).then(res => {
+                const list = res.data || res || [];
+                document.getElementById('resultCount').textContent = `共找到 ${list.length} 个相关话题`;
+
+                if (!list || list.length === 0) {
+                    listEl.innerHTML = '';
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+
+                emptyEl.style.display = 'none';
+                listEl.innerHTML = list.map(t => {
+                    const typeInfo = TOPIC_TYPE[t.type] || { name: '未知', icon: '?' };
+                    const optionCount = t.optionCount || (t.options ? t.options.length : 0);
+                    const voteCount = t.voteCount || t.participantCount || t.total || 0;
+                    return `
+                        <div class="topic-card" onclick="navigateTo('vote.html?id=${t.id}')">
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge badge-primary">${typeInfo.icon} ${typeInfo.name}</span>
+                                ${t.status === 2 ? '<span class="badge badge-secondary">已结束</span>' : ''}
+                            </div>
+                            <div class="topic-card-title">${highlightKeyword(escapeHtml(t.title), keyword)}</div>
+                            ${t.description ? `<div class="topic-card-desc">${highlightKeyword(escapeHtml(t.description), keyword)}</div>` : ''}
+                            <div class="topic-card-meta">
+                                <span>📋 ${optionCount} 个选项</span>
+                                <span>👥 ${voteCount} 人参与</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }).catch(() => {
+                document.getElementById('resultCount').textContent = '搜索接口暂未开放';
+                listEl.innerHTML = '';
+                emptyEl.style.display = 'block';
+                emptyEl.querySelector('h3').textContent = '搜索功能暂未开放';
+            });
+        }
+
+        // 关键词高亮
+        function highlightKeyword(text, kw) {
+            if (!kw) return text;
+            const reg = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(reg, '<mark style="background:#fff3cd; color:#856404; padding:0 2px; border-radius:3px;">$1</mark>');
+        }
+
+        // 初始化
+        doSearch();
+    </script>
+</body>
+</html>

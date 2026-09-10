@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 线上投票调研系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="container">
+        <div class="profile-layout">
+            <!-- 左侧：用户信息 -->
+            <div class="profile-sidebar">
+                <div id="userAvatar"></div>
+                <div class="profile-nickname" id="userNickname">-</div>
+                <div class="profile-username" id="userUsername">@-</div>
+
+                <div style="text-align:left; margin-top:16px;">
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">📧 邮箱</span>
+                        <span class="profile-info-value" id="userEmail">未绑定</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">📝 发起话题</span>
+                        <span class="profile-info-value" id="createdCount">0</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">🗳 参与投票</span>
+                        <span class="profile-info-value" id="joinedCount">0</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">📅 注册时间</span>
+                        <span class="profile-info-value" id="userRegTime">-</span>
+                    </div>
+                </div>
+
+                <!-- 编辑按钮 -->
+                <button class="btn btn-outline-primary btn-block mt-4" id="editBtn" onclick="toggleEdit()">✏️ 编辑资料</button>
+
+                <!-- 编辑表单（默认隐藏） -->
+                <div id="editForm" style="display:none; margin-top:16px; text-align:left;">
+                    <div class="mb-3">
+                        <label class="form-label">昵称</label>
+                        <input type="text" class="form-control" id="editNickname" maxlength="20">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="editEmail" maxlength="100">
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="saveProfile()">保存</button>
+                        <button class="btn btn-outline-secondary btn-sm" style="flex:1;" onclick="toggleEdit()">取消</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-outline-secondary btn-block mt-3" onclick="handleLogout()">退出登录</button>
+            </div>
+
+            <!-- 右侧：我的话题 -->
+            <div class="profile-main">
+                <div class="profile-tabs">
+                    <button class="profile-tab active" data-tab="created" onclick="switchTab('created')">📝 我发起的话题</button>
+                    <button class="profile-tab" data-tab="joined" onclick="switchTab('joined')">🗳 我参与的话题</button>
+                </div>
+
+                <!-- 我发起的 -->
+                <div id="createdPanel">
+                    <div id="createdList" class="topic-card-list">
+                        <div class="text-center py-5">
+                            <div class="spinner" style="margin:0 auto 12px;"></div>
+                            <p class="text-muted">加载中...</p>
+                        </div>
+                    </div>
+                    <div id="createdEmpty" class="empty-state" style="display:none;">
+                        <div class="empty-state-icon">📝</div>
+                        <p>你还没有发起过话题</p>
+                        <a href="create.html" class="btn btn-primary mt-3">+ 发起第一个投票</a>
+                    </div>
+                </div>
+
+                <!-- 我参与的 -->
+                <div id="joinedPanel" style="display:none;">
+                    <div id="joinedList" class="topic-card-list">
+                        <div class="text-center py-5">
+                            <div class="spinner" style="margin:0 auto 12px;"></div>
+                            <p class="text-muted">加载中...</p>
+                        </div>
+                    </div>
+                    <div id="joinedEmpty" class="empty-state" style="display:none;">
+                        <div class="empty-state-icon">🗳</div>
+                        <p>你还没有参与过投票</p>
+                        <a href="index.html" class="btn btn-primary mt-3">去发现话题</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>线上投票调研系统 · 软件项目综合实践</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        renderNavbar('profile');
+
+        // 登录守卫
+        if (!requireLogin()) {
+            // 未登录会自动跳转
+        }
+
+        let currentUser = null;
+
+        // 渲染用户信息
+        function renderUserInfo() {
+            const user = Auth.getUser();
+            if (!user) return;
+            currentUser = user;
+
+            const nickname = user.nickname || user.username || '用户';
+            document.getElementById('userNickname').textContent = nickname;
+            document.getElementById('userUsername').textContent = '@' + (user.username || '-');
+            document.getElementById('userEmail').textContent = user.email || '未绑定';
+            document.getElementById('userRegTime').textContent = user.createdAt ? formatTime(user.createdAt).slice(0,10) : '-';
+
+            // 头像
+            const avatarEl = document.getElementById('userAvatar');
+            if (user.avatar) {
+                avatarEl.innerHTML = `<img src="${user.avatar}" class="profile-avatar" alt="avatar">`;
+            } else {
+                avatarEl.innerHTML = `<div class="profile-avatar-default">${nickname.charAt(0).toUpperCase()}</div>`;
+            }
+
+            // 编辑表单默认值
+            document.getElementById('editNickname').value = nickname;
+            document.getElementById('editEmail').value = user.email || '';
+        }
+
+        // 切换编辑模式
+        function toggleEdit() {
+            const editForm = document.getElementById('editForm');
+            const editBtn = document.getElementById('editBtn');
+            if (editForm.style.display === 'none') {
+                editForm.style.display = 'block';
+                editBtn.style.display = 'none';
+                // 重新填充当前值
+                if (currentUser) {
+                    document.getElementById('editNickname').value = currentUser.nickname || '';
+                    document.getElementById('editEmail').value = currentUser.email || '';
+                }
+            } else {
+                editForm.style.display = 'none';
+                editBtn.style.display = 'block';
+            }
+        }
+
+        // 保存用户信息
+        function saveProfile() {
+            const nickname = document.getElementById('editNickname').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+
+            if (!nickname) {
+                showToast('昵称不能为空', 'warning');
+                return;
+            }
+
+            UserAPI.updateProfile({ nickname, email }).then(res => {
+                if (res.code === 200) {
+                    showToast('保存成功', 'success');
+                    // 更新本地存储
+                    const updated = { ...currentUser, nickname, email };
+                    Auth.setUser(updated);
+                    currentUser = updated;
+                    renderUserInfo();
+                    toggleEdit();
+                } else {
+                    showToast(res.msg || '保存失败', 'error');
+                }
+            }).catch(err => {
+                console.error(err);
+                showToast('保存失败，请稍后重试', 'error');
+            });
+        }
+
+        // 切换Tab
+        function switchTab(tab) {
+            document.querySelectorAll('.profile-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.tab === tab);
+            });
+            document.getElementById('createdPanel').style.display = tab === 'created' ? 'block' : 'none';
+            document.getElementById('joinedPanel').style.display = tab === 'joined' ? 'block' : 'none';
+
+            if (tab === 'created') loadCreatedTopics();
+            else loadJoinedTopics();
+        }
+
+        // 渲染话题列表（通用）
+        function renderTopicList(containerId, emptyId, topics) {
+            const container = document.getElementById(containerId);
+            const empty = document.getElementById(emptyId);
+            if (!topics || topics.length === 0) {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            container.innerHTML = topics.map(t => {
+                const typeInfo = TOPIC_TYPE[t.type] || { name: '未知', icon: '?' };
+                const optionCount = t.optionCount || (t.options ? t.options.length : 0);
+                const voteCount = t.voteCount || t.participantCount || t.total || 0;
+                return `
+                    <div class="topic-card" onclick="navigateTo('vote.html?id=${t.id}')">
+                        <div class="d-flex gap-2 mb-2">
+                            <span class="badge badge-primary">${typeInfo.icon} ${typeInfo.name}</span>
+                            ${t.status === 2 ? '<span class="badge badge-secondary">已结束</span>' : ''}
+                        </div>
+                        <div class="topic-card-title">${escapeHtml(t.title)}</div>
+                        <div class="topic-card-meta">
+                            <span>📋 ${optionCount} 个选项</span>
+                            <span>👥 ${voteCount} 人参与</span>
+                            ${t.createdAt ? `<span>🕐 ${formatTime(t.createdAt).slice(0,10)}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 加载我发起的话题
+        function loadCreatedTopics() {
+            UserAPI.getMyTopics().then(res => {
+                const list = res.data || res || [];
+                document.getElementById('createdCount').textContent = list.length;
+                renderTopicList('createdList', 'createdEmpty', list);
+            }).catch(() => {
+                document.getElementById('createdList').innerHTML = '';
+                document.getElementById('createdEmpty').style.display = 'block';
+            });
+        }
+
+        // 加载我参与的话题
+        function loadJoinedTopics() {
+            UserAPI.getMyVotes().then(res => {
+                const list = res.data || res || [];
+                document.getElementById('joinedCount').textContent = list.length;
+                renderTopicList('joinedList', 'joinedEmpty', list);
+            }).catch(() => {
+                document.getElementById('joinedList').innerHTML = '';
+                document.getElementById('joinedEmpty').style.display = 'block';
+            });
+        }
+
+        // 初始化
+        renderUserInfo();
+        const tabParam = getQueryParam('tab');
+        if (tabParam === 'joined') {
+            switchTab('joined');
+        } else {
+            loadCreatedTopics();
+        }
+    </script>
+</body>
+</html>

@@ -1,187 +1,339 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>投票结果</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投票结果 - 线上投票调研系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
 </head>
-<body class="bg-light py-5">
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10 col-sm-12">
-            <h2 class="text-center mb-4" id="resultTitle">加载中...</h2>
+<body>
+    <div id="navbar-placeholder"></div>
 
-            <div class="d-flex justify-content-center gap-2 mb-3">
-                <button class="btn btn-primary btn-sm" id="pieBtn">饼图</button>
-                <button class="btn btn-outline-secondary btn-sm" id="barBtn">柱状图</button>
-                <button class="btn btn-outline-success btn-sm ms-auto" id="copyLinkBtn">复制投票链接</button>
-            </div>
+    <div class="container py-5" style="max-width: 860px;">
+        <!-- 加载中 -->
+        <div id="loadingView" class="text-center py-5">
+            <div class="spinner" style="margin:0 auto 16px;"></div>
+            <p class="text-muted">加载投票结果中...</p>
+        </div>
 
-            <div class="card shadow-sm mb-4">
+        <!-- 投票不存在 -->
+        <div id="notFoundView" style="display:none;" class="text-center py-5">
+            <div style="font-size:4rem; margin-bottom:16px;">😕</div>
+            <h3>投票不存在或已被删除</h3>
+            <p class="text-muted">请确认投票 ID 是否正确</p>
+            <a href="index.html" class="btn btn-primary mt-3">返回首页</a>
+        </div>
+
+        <!-- 结果主体 -->
+        <div id="resultView" style="display:none;">
+            <!-- 投票标题卡片 -->
+            <div class="card mb-4">
                 <div class="card-body">
-                    <div id="chart" style="width: 100%; height: 400px;"></div>
+                    <div class="d-flex justify-between align-center mb-2 flex-wrap gap-2">
+                        <div class="d-flex gap-2 align-center">
+                            <span class="badge badge-primary" id="typeBadge">单选</span>
+                            <span class="badge badge-success" id="statusBadge">进行中</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" id="goVoteBtn">去投票</button>
+                            <button class="btn btn-sm btn-outline-success" id="copyBtn">📋 复制投票链接</button>
+                        </div>
+                    </div>
+                    <h2 id="resultTitle" style="margin:0 0 8px; font-size:1.4rem;"></h2>
+                    <p id="resultDesc" class="text-muted" style="margin:0; line-height:1.6;"></p>
                 </div>
             </div>
 
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0">🤖 AI 分析报告</h5>
+            <!-- 统计数字 -->
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalVotes">0</div>
+                    <div class="stat-label">总投票数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalOptions">0</div>
+                    <div class="stat-label">选项数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="topOption">-</div>
+                    <div class="stat-label">领先选项</div>
+                </div>
+            </div>
+
+            <!-- 图表卡片 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-between align-center mb-3 flex-wrap gap-2">
+                        <h5 style="margin:0;">📊 投票结果统计</h5>
+                        <div class="chart-tabs">
+                            <button class="chart-tab active" data-type="pie">饼图</button>
+                            <button class="chart-tab" data-type="bar">柱状图</button>
+                        </div>
+                    </div>
+                    <div id="chart" style="width:100%; height:380px;"></div>
+                    <div id="noDataTip" class="text-center text-muted py-4" style="display:none;">
+                        暂无投票数据，<a href="javascript:void(0)" id="noDataVoteLink">去投第一票</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI分析报告 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-between align-center">
+                    <span>🤖 AI 分析报告</span>
+                    <button class="btn btn-sm btn-outline-secondary" id="refreshAiBtn">🔄 重新生成</button>
                 </div>
                 <div class="card-body">
-                    <div id="aiReport" class="text-muted">正在生成AI报告...</div>
+                    <div id="aiLoading" class="ai-loading">
+                        <div class="spinner"></div>
+                        <span>AI 正在分析投票数据，生成报告中...</span>
+                    </div>
+                    <div id="aiContent" class="ai-report-content" style="display:none;"></div>
+                    <div id="aiError" style="display:none;" class="text-center text-muted py-4">
+                        <p>AI 报告生成失败</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadAiReport()">重试</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 评论区 -->
+            <div class="card">
+                <div class="card-header d-flex justify-between align-center">
+                    <span>💬 评论区</span>
+                    <span class="text-small text-muted" id="commentCount">0 条评论</span>
+                </div>
+                <div class="card-body">
+                    <div class="comment-input-box">
+                        <input type="text" class="form-control" id="commentInput" placeholder="发表你的看法..." maxlength="500">
+                        <button class="btn btn-primary" id="commentBtn">发布</button>
+                    </div>
+                    <div class="comment-list" id="commentList">
+                        <div class="text-center text-muted py-4">暂无评论，快来抢沙发～</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js">
-</script>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js">
-</script>
-<script>
-    function getQueryParam(name) {
-        return new URLSearchParams(window.location.search).get(name);
-    }
-    const topicId = getQueryParam('id');
-    let chartInstance = null;
-    let chartData = [];
+    <div class="footer">
+        <p>线上投票调研系统 · 软件项目综合实践</p>
+    </div>
 
-    function renderChart(type) {
-        type = type || 'pie';
-        if (!chartInstance) {
-            chartInstance = echarts.init(document.getElementById('chart'));
-            window.addEventListener('resize', function() {
-                chartInstance.resize();
-            });
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        renderNavbar();
+
+        const topicId = getQueryParam('id');
+        let chartInstance = null;
+        let chartData = [];
+        let topicData = null;
+
+        if (!topicId || !/^\d+$/.test(topicId)) {
+            document.getElementById('loadingView').style.display = 'none';
+            document.getElementById('notFoundView').style.display = 'block';
+        } else {
+            loadAll();
         }
 
-        var option = {};
-        if (type === 'pie') {
-            option = {
-                title: { text: '投票结果分布', left: 'center' },
-                tooltip: { trigger: 'item', formatter: '{b}: {c}票 ({d}%)' },
-                legend: { orient: 'vertical', left: 'left', bottom: 0 },
-                series: [{
-                    type: 'pie',
-                    radius: '60%',
-                    data: chartData,
-                    emphasis: {
-                        itemStyle: {
-                            shadowBlur: 10,
-                            shadowColor: 'rgba(0,0,0,0.5)'
-                        }
+        function loadAll() {
+            Promise.all([TopicAPI.getDetail(topicId), VoteAPI.getResults(topicId)])
+                .then(([topicRes, resultRes]) => {
+                    document.getElementById('loadingView').style.display = 'none';
+                    if (topicRes.code !== 200 || !topicRes.data) {
+                        document.getElementById('notFoundView').style.display = 'block';
+                        return;
                     }
-                }]
-            };
-        } else {
-            option = {
-                title: { text: '投票结果统计', left: 'center' },
-                tooltip: { trigger: 'axis' },
-                xAxis: {
-                    type: 'category',
-                    data: chartData.map(function(i) { return i.name; })
-                },
-                yAxis: {
-                    type: 'value',
-                    name: '票数'
-                },
-                series: [{
-                    type: 'bar',
-                    data: chartData.map(function(i) { return i.value; }),
-                    itemStyle: { color: '#409eff' }
-                }]
-            };
-        }
-        chartInstance.setOption(option, true);
-    }
+                    topicData = topicRes.data;
+                    renderTopicInfo();
 
-    function loadResults() {
-        if (!topicId) {
-            document.getElementById('resultTitle').textContent = '无效的投票ID';
-            return;
-        }
+                    if (resultRes.code === 200 && resultRes.data) {
+                        renderResult(resultRes.data);
+                    }
 
-        axios.get('/api/topics/' + topicId)
-            .then(function(res) {
-                var topic = res.data.data;
-                document.getElementById('resultTitle').textContent = topic.title + ' - 结果';
-            })
-            .catch(function() {
-                document.getElementById('resultTitle').textContent = '加载投票信息失败';
-            });
-
-        axios.get('/api/topics/' + topicId + '/results')
-            .then(function(res) {
-                var data = res.data.data;
-                chartData = data.labels.map(function(label, index) {
-                    return {
-                        name: label,
-                        value: data.values[index]
-                    };
+                    RecentStore.add(topicData.id, topicData.title, topicData.type);
+                    loadAiReport();
+                    loadComments();
+                })
+                .catch(() => {
+                    document.getElementById('loadingView').style.display = 'none';
+                    document.getElementById('notFoundView').style.display = 'block';
                 });
-                renderChart('pie');
-            })
-            .catch(function(err) {
-                console.error('加载结果失败:', err);
-                document.getElementById('resultTitle').textContent = '加载结果失败';
-            });
-    }
-
-    function loadAiReport() {
-        if (!topicId) return;
-        axios.get('/api/ai/report/' + topicId)
-            .then(function(res) {
-                var report = res.data.data;
-                var el = document.getElementById('aiReport');
-                el.textContent = report;
-                el.classList.remove('text-muted');
-            })
-            .catch(function() {
-                document.getElementById('aiReport').textContent = 'AI报告生成失败，请稍后重试';
-            });
-    }
-
-    document.getElementById('pieBtn').onclick = function() {
-        this.className = 'btn btn-primary btn-sm';
-        document.getElementById('barBtn').className = 'btn btn-outline-secondary btn-sm';
-        renderChart('pie');
-    };
-
-    document.getElementById('barBtn').onclick = function() {
-        this.className = 'btn btn-primary btn-sm';
-        document.getElementById('pieBtn').className = 'btn btn-outline-secondary btn-sm';
-        renderChart('bar');
-    };
-
-    document.getElementById('copyLinkBtn').onclick = function() {
-        var url = window.location.origin + '/vote.html?id=' + topicId;
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(url).then(function() {
-                alert('投票链接已复制到剪贴板');
-            }).catch(function() {
-                fallbackCopy(url);
-            });
-        } else {
-            fallbackCopy(url);
         }
-    };
 
-    function fallbackCopy(text) {
-        var input = document.createElement('input');
-        input.value = text;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-        alert('投票链接已复制');
-    }
+        function renderTopicInfo() {
+            document.getElementById('resultView').style.display = 'block';
+            const typeInfo = TOPIC_TYPE[topicData.type] || { name: '未知', icon: '?' };
+            document.getElementById('typeBadge').textContent = `${typeInfo.icon} ${typeInfo.name}`;
+            document.getElementById('resultTitle').textContent = topicData.title;
+            document.getElementById('resultDesc').textContent = topicData.description || '暂无描述';
 
-    window.onload = function() {
-        loadResults();
-        loadAiReport();
-    };
-</script>
+            const status = TOPIC_STATUS[topicData.status] || { text: '未知', class: 'badge-warning' };
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = status.text;
+            statusBadge.className = `badge ${status.class}`;
+
+            document.getElementById('totalOptions').textContent = topicData.options ? topicData.options.length : 0;
+
+            document.getElementById('goVoteBtn').onclick = () => navigateTo(`vote.html?id=${topicId}`);
+            document.getElementById('noDataVoteLink').onclick = () => navigateTo(`vote.html?id=${topicId}`);
+            document.getElementById('copyBtn').onclick = copyVoteLink;
+        }
+
+        function renderResult(data) {
+            const labels = data.labels || [];
+            const values = data.values || [];
+            const total = data.total || 0;
+
+            document.getElementById('totalVotes').textContent = total;
+
+            if (total > 0 && values.length > 0) {
+                let maxIdx = 0;
+                values.forEach((v, i) => { if (v > values[maxIdx]) maxIdx = i; });
+                const topName = labels[maxIdx] || '-';
+                document.getElementById('topOption').textContent = topName.length > 6 ? topName.slice(0,6)+'...' : topName;
+            }
+
+            chartData = labels.map((name, i) => ({ name, value: values[i] || 0 }));
+
+            if (total === 0) {
+                document.getElementById('chart').style.display = 'none';
+                document.getElementById('noDataTip').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('chart').style.display = 'block';
+            document.getElementById('noDataTip').style.display = 'none';
+            renderChart('pie');
+        }
+
+        function renderChart(type) {
+            if (!chartInstance) {
+                chartInstance = echarts.init(document.getElementById('chart'));
+                window.addEventListener('resize', () => chartInstance && chartInstance.resize());
+            }
+
+            const colors = ['#4A90D9', '#36CFC9', '#F7BA1E', '#F56C6C', '#909399', '#722ED1', '#13C2C2'];
+            let option;
+
+            if (type === 'pie') {
+                option = {
+                    color: colors,
+                    tooltip: { trigger: 'item', formatter: '{b}<br/>{c} 票 ({d}%)' },
+                    legend: { orient: 'vertical', left: 'left', top: 'center', textStyle: { fontSize: 12 } },
+                    series: [{
+                        type: 'pie',
+                        radius: ['40%', '65%'],
+                        center: ['60%', '50%'],
+                        itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+                        label: { show: true, formatter: '{b}\n{d}%', fontSize: 12 },
+                        emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
+                        data: chartData
+                    }]
+                };
+            } else {
+                option = {
+                    color: ['#4A90D9'],
+                    tooltip: { trigger: 'axis', formatter: '{b}<br/>{c} 票' },
+                    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                    xAxis: { type: 'category', data: chartData.map(i => i.name), axisLabel: { interval: 0, rotate: chartData.length > 5 ? 30 : 0, fontSize: 11 } },
+                    yAxis: { type: 'value', name: '票数', minInterval: 1 },
+                    series: [{ type: 'bar', data: chartData.map(i => i.value), barWidth: '50%', itemStyle: { borderRadius: [6, 6, 0, 0] }, label: { show: true, position: 'top', fontSize: 12 } }]
+                };
+            }
+            chartInstance.setOption(option, true);
+        }
+
+        document.querySelectorAll('.chart-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderChart(tab.dataset.type);
+            });
+        });
+
+        function loadAiReport() {
+            document.getElementById('aiLoading').style.display = 'flex';
+            document.getElementById('aiContent').style.display = 'none';
+            document.getElementById('aiError').style.display = 'none';
+
+            AiAPI.getReport(topicId).then(text => {
+                document.getElementById('aiLoading').style.display = 'none';
+                if (text && text.trim()) {
+                    document.getElementById('aiContent').textContent = text;
+                    document.getElementById('aiContent').style.display = 'block';
+                } else {
+                    document.getElementById('aiError').style.display = 'block';
+                }
+            }).catch(() => {
+                document.getElementById('aiLoading').style.display = 'none';
+                document.getElementById('aiError').style.display = 'block';
+            });
+        }
+        document.getElementById('refreshAiBtn').addEventListener('click', loadAiReport);
+
+        function copyVoteLink() {
+            const url = `${window.location.origin}/vote.html?id=${topicId}`;
+            copyToClipboard(url).then(() => {
+                showToast('投票链接已复制到剪贴板', 'success');
+            }).catch(() => {
+                showToast('复制失败，请手动复制', 'error');
+            });
+        }
+
+        // ========== 评论区 ==========
+        function loadComments() {
+            CommentAPI.getList(topicId).then(list => {
+                const container = document.getElementById('commentList');
+                document.getElementById('commentCount').textContent = `${list.length} 条评论`;
+                if (!list || list.length === 0) {
+                    container.innerHTML = '<div class="text-center text-muted py-4">暂无评论，快来抢沙发～</div>';
+                    return;
+                }
+                container.innerHTML = list.map(c => {
+                    const sentimentMap = {
+                        'POSITIVE': { text: '😊', class: 'badge-success' },
+                        'NEGATIVE': { text: '😞', class: 'badge-danger' },
+                        'NEUTRAL': { text: '😐', class: 'badge-warning' }
+                    };
+                    const s = sentimentMap[c.sentiment] || null;
+                    return `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span class="comment-user">匿名用户 ${c.ipAddress ? '(' + maskIp(c.ipAddress) + ')' : ''}</span>
+                                <span class="comment-time">${formatTime(c.createTime)}</span>
+                            </div>
+                            <div class="comment-content">${escapeHtml(c.content)}</div>
+                            ${s ? `<div class="mt-1"><span class="badge ${s.class} comment-sentiment">${s.text}</span></div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }).catch(() => {});
+        }
+
+        document.getElementById('commentBtn').addEventListener('click', submitComment);
+        document.getElementById('commentInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') submitComment();
+        });
+
+        function submitComment() {
+            const input = document.getElementById('commentInput');
+            const content = input.value.trim();
+            if (!content) {
+                showToast('请输入评论内容', 'warning');
+                return;
+            }
+            CommentAPI.add(topicId, content).then(() => {
+                showToast('评论发布成功', 'success');
+                input.value = '';
+                loadComments();
+            }).catch(() => {
+                showToast('评论发布失败', 'error');
+            });
+        }
+    </script>
 </body>
 </html>

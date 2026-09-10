@@ -3,6 +3,7 @@ package com.example.controller;
 import com.example.dto.VoteRequest;
 import com.example.service.VoteService;
 import com.example.utils.IpUtil;
+import com.example.utils.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -21,12 +22,13 @@ public class VoteController {
 
     private static final Logger log = LoggerFactory.getLogger(VoteController.class);
     private final VoteService voteService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/vote")
     public Map<String, Object> vote(@RequestBody VoteRequest request,
                                     HttpServletRequest httpRequest) {
         Map<String, Object> response = new HashMap<>();
-        log.info("收到投票请求：topicId={}, optionIds={}, fillText={}", 
+        log.info("收到投票请求：topicId={}, optionIds={}, fillText={}",
                  request.getTopicId(), request.getOptionIds(), request.getFillText());
 
         try {
@@ -42,7 +44,18 @@ public class VoteController {
             }
 
             String ip = IpUtil.getRealIp(httpRequest);
-            Map<String, Object> result = voteService.vote(topicId, optionIds, fillText, ip);
+
+            // 手动解析Token获取用户ID（未登录则为null）
+            Long userId = null;
+            String authHeader = httpRequest.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                if (jwtUtil.validateToken(token)) {
+                    userId = jwtUtil.getUserIdFromToken(token);
+                }
+            }
+
+            Map<String, Object> result = voteService.vote(topicId, optionIds, fillText, ip, userId);
 
             boolean success = Boolean.TRUE.equals(result.get("success"));
             response.put("code", success ? 200 : 400);
@@ -52,9 +65,9 @@ public class VoteController {
             }
 
             if (success) {
-                log.info("投票成功：topicId={}, ip={}", topicId, ip);
+                log.info("投票成功：topicId={}, ip={}, userId={}", topicId, ip, userId);
             } else {
-                log.warn("投票失败：topicId={}, ip={}, reason={}", topicId, ip, result.get("message"));
+                log.warn("投票失败：topicId={}, ip={}, userId={}, reason={}", topicId, ip, userId, result.get("message"));
             }
 
         } catch (Exception e) {

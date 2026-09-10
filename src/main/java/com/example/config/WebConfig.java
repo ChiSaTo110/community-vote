@@ -20,11 +20,11 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/topics/me/**",
                         "/api/topics/random",
                         "/api/topics/search/**",
-                        "/api/topics/hot"
+                        "/api/topics/hot",
+                        "/api/topics"
                 )
                 .excludePathPatterns(
                         "/api/auth/**",
-                        "/api/topics",
                         "/api/topics/*",
                         "/api/topics/*/results",
                         "/api/vote",

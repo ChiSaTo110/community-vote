@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投票大厅 - 线上投票调研系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <!-- Hero横幅 -->
+    <section class="hero">
+        <div class="container">
+            <h1>发现有趣的话题，表达你的观点</h1>
+            <p>参与热门投票 · 创建专属话题 · 实时查看结果 · AI 智能分析</p>
+            <div class="d-flex gap-3" style="justify-content:center;">
+                <a href="create.html" class="btn btn-lg">+ 发起投票</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="home-layout">
+            <!-- 主内容区：话题列表 -->
+            <div class="home-main">
+                <div class="section-header">
+                    <h2 class="section-title">🔥 推荐话题</h2>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="loadRandomTopics()">🔄 换一批</button>
+                </div>
+
+                <div id="topicList" class="topic-card-list">
+                    <!-- 加载中 -->
+                    <div class="text-center py-5" id="topicLoading">
+                        <div class="spinner" style="margin:0 auto 12px;"></div>
+                        <p class="text-muted">加载话题中...</p>
+                    </div>
+                </div>
+
+                <!-- 空状态 -->
+                <div id="topicEmpty" class="empty-state" style="display:none;">
+                    <div class="empty-state-icon">📭</div>
+                    <p>暂无话题</p>
+                    <p class="text-small">成为第一个发起投票的人吧！</p>
+                    <a href="create.html" class="btn btn-primary mt-3">+ 立即创建投票</a>
+                </div>
+            </div>
+
+            <!-- 侧边栏 -->
+            <div class="home-sidebar">
+                <!-- 热门话题 -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">🏆 热门话题</div>
+                    <div class="sidebar-body" id="hotList">
+                        <div class="text-center py-4 text-muted">
+                            <div class="spinner" style="margin:0 auto 10px;"></div>
+                            <span class="text-small">加载中...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快速入口 -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">⚡ 快速入口</div>
+                    <div class="sidebar-body" style="padding:12px;">
+                        <a href="create.html" class="d-flex align-center gap-2 p-2" style="border-radius:8px; color:var(--text-main); text-decoration:none; transition:background 0.15s;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='transparent'">
+                            <span style="font-size:1.2rem;">📝</span>
+                            <span style="font-size:0.9rem;">发起新投票</span>
+                        </a>
+                        <a href="profile.html" class="d-flex align-center gap-2 p-2" style="border-radius:8px; color:var(--text-main); text-decoration:none; transition:background 0.15s;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='transparent'">
+                            <span style="font-size:1.2rem;">👤</span>
+                            <span style="font-size:0.9rem;">个人中心</span>
+                        </a>
+                        <a href="search.html" class="d-flex align-center gap-2 p-2" style="border-radius:8px; color:var(--text-main); text-decoration:none; transition:background 0.15s;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='transparent'">
+                            <span style="font-size:1.2rem;">🔍</span>
+                            <span style="font-size:0.9rem;">搜索话题</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>线上投票调研系统 · 软件项目综合实践</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        // 渲染导航栏
+        renderNavbar('home');
+
+        // 加载随机话题
+        function loadRandomTopics() {
+            const listEl = document.getElementById('topicList');
+            const emptyEl = document.getElementById('topicEmpty');
+            listEl.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner" style="margin:0 auto 12px;"></div>
+                    <p class="text-muted">加载话题中...</p>
+                </div>
+            `;
+            emptyEl.style.display = 'none';
+
+            TopicAPI.getRandom().then(res => {
+                const topics = res.data || res || [];
+                if (!topics || topics.length === 0) {
+                    listEl.innerHTML = '';
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+                renderTopicList(topics);
+            }).catch(() => {
+                // 接口未实现时的降级展示
+                listEl.innerHTML = '';
+                emptyEl.style.display = 'block';
+                emptyEl.querySelector('p').textContent = '话题接口暂未开放';
+            });
+        }
+
+        // 渲染话题卡片
+        function renderTopicList(topics) {
+            const listEl = document.getElementById('topicList');
+            listEl.innerHTML = topics.map(t => {
+                const typeInfo = TOPIC_TYPE[t.type] || { name: '未知', icon: '?' };
+                const optionCount = t.optionCount || (t.options ? t.options.length : 0);
+                const voteCount = t.voteCount || t.participantCount || t.total || 0;
+                return `
+                    <div class="topic-card" onclick="navigateTo('vote.html?id=${t.id}')">
+                        <div class="d-flex gap-2 mb-2">
+                            <span class="badge badge-primary">${typeInfo.icon} ${typeInfo.name}</span>
+                            ${t.status === 2 ? '<span class="badge badge-secondary">已结束</span>' : ''}
+                        </div>
+                        <div class="topic-card-title">${escapeHtml(t.title)}</div>
+                        ${t.description ? `<div class="topic-card-desc">${escapeHtml(t.description)}</div>` : ''}
+                        <div class="topic-card-meta">
+                            <span>📋 ${optionCount} 个选项</span>
+                            <span>👥 ${voteCount} 人参与</span>
+                            ${t.createdAt ? `<span>🕐 ${formatTime(t.createdAt).slice(0,10)}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 加载热门话题
+        function loadHotTopics() {
+            const hotEl = document.getElementById('hotList');
+            TopicAPI.getHot().then(res => {
+                const list = res.data || res || [];
+                if (!list || list.length === 0) {
+                    hotEl.innerHTML = '<div class="text-center py-4 text-muted text-small">暂无热门话题</div>';
+                    return;
+                }
+                hotEl.innerHTML = list.slice(0, 10).map((t, i) => `
+                    <div class="hot-topic-item" onclick="navigateTo('vote.html?id=${t.id}')">
+                        <div class="hot-rank">${i + 1}</div>
+                        <div style="flex:1; min-width:0;">
+                            <div class="hot-topic-title">${escapeHtml(t.title)}</div>
+                            <div class="hot-topic-count">${t.voteCount || t.participantCount || 0} 人参与</div>
+                        </div>
+                    </div>
+                `).join('');
+            }).catch(() => {
+                hotEl.innerHTML = '<div class="text-center py-4 text-muted text-small">热门话题接口暂未开放</div>';
+            });
+        }
+
+        // 初始化
+        loadRandomTopics();
+        loadHotTopics();
+    </script>
+</body>
+</html>

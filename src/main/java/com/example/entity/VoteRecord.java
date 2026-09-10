@@ -27,6 +27,10 @@ public class VoteRecord {
     @Column(name = "ip_address", nullable = false, length = 50)
     private String ipAddress;
 
+    // 新增：关联投票用户ID（未登录用户为null）
+    @Column(name = "user_id")
+    private Long userId;
+
     // 新增：填空内容
     @Column(name = "fill_content", columnDefinition = "TEXT")
     private String fillContent;

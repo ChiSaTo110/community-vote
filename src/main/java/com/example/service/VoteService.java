@@ -25,9 +25,9 @@ public class VoteService {
     private final VoteRecordRepository voteRecordRepository;
 
     @Transactional
-    public Map<String, Object> vote(Long topicId, List<Long> optionIds, String fillText, String ipAddress) {
+    public Map<String, Object> vote(Long topicId, List<Long> optionIds, String fillText, String ipAddress, Long userId) {
         Map<String, Object> result = new HashMap<>();
-        log.info("收到投票请求：topicId={}, optionIds={}, fillText={}, ip={}", topicId, optionIds, fillText, ipAddress);
+        log.info("收到投票请求：topicId={}, optionIds={}, fillText={}, ip={}, userId={}", topicId, optionIds, fillText, ipAddress, userId);
 
         // 1. 查询投票是否存在
         Optional<Topic> topicOpt = topicRepository.findById(topicId);
@@ -74,8 +74,8 @@ public class VoteService {
                 result.put("message", "选项不合法");
                 return result;
             }
-            saveVoteRecord(topic, opt.get(), null, ipAddress);
-            log.info("单选投票成功：topicId={}, optionId={}, ip={}", topicId, optionId, ipAddress);
+            saveVoteRecord(topic, opt.get(), null, ipAddress, userId);
+            log.info("单选投票成功：topicId={}, optionId={}, ip={}, userId={}", topicId, optionId, ipAddress, userId);
 
         } else if (type == 2) { // 多选
             if (optionIds == null || optionIds.isEmpty()) {
@@ -92,9 +92,9 @@ public class VoteService {
                     result.put("message", "选项不合法: " + id);
                     return result;
                 }
-                saveVoteRecord(topic, opt.get(), null, ipAddress);
+                saveVoteRecord(topic, opt.get(), null, ipAddress, userId);
             }
-            log.info("多选投票成功：topicId={}, optionIds={}, ip={}", topicId, optionIds, ipAddress);
+            log.info("多选投票成功：topicId={}, optionIds={}, ip={}, userId={}", topicId, optionIds, ipAddress, userId);
 
         } else if (type == 3) { // 填空
             if (fillText == null || fillText.trim().isEmpty()) {
@@ -103,14 +103,15 @@ public class VoteService {
                 result.put("message", "请填写内容");
                 return result;
             }
-            // 【修复】真正保存填空记录
+            // 真正保存填空记录
             VoteRecord record = new VoteRecord();
             record.setTopic(topic);
-            record.setOption(null);          // 填空没有选项
+            record.setOption(null);
             record.setFillContent(fillText.trim());
             record.setIpAddress(ipAddress);
+            record.setUserId(userId);
             voteRecordRepository.save(record);
-            log.info("填空投票成功：topicId={}, fillText={}, ip={}", topicId, fillText, ipAddress);
+            log.info("填空投票成功：topicId={}, fillText={}, ip={}, userId={}", topicId, fillText, ipAddress, userId);
         }
 
         result.put("success", true);
@@ -119,14 +120,15 @@ public class VoteService {
     }
 
     /**
-     * 保存单条投票记录（支持填空）
+     * 保存单条投票记录
      */
-    private void saveVoteRecord(Topic topic, VoteOption option, String fillContent, String ipAddress) {
+    private void saveVoteRecord(Topic topic, VoteOption option, String fillContent, String ipAddress, Long userId) {
         VoteRecord record = new VoteRecord();
         record.setTopic(topic);
         record.setOption(option);
         record.setFillContent(fillContent);
         record.setIpAddress(ipAddress);
+        record.setUserId(userId);
         voteRecordRepository.save(record);
     }
 
