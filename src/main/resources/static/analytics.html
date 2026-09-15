@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析大屏 - 投票系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/analytics.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body class="analytics-body">
+    <!-- 顶部导航 -->
+    <nav class="analytics-header">
+        <div class="header-left">
+            <a href="index.html" class="back-btn">← 返回首页</a>
+        </div>
+        <div class="header-title">
+            <h1>📊 投票系统数据分析大屏</h1>
+        </div>
+        <div class="header-right">
+            <span class="live-indicator">
+                <span class="live-dot"></span>
+                实时数据
+            </span>
+            <span id="currentTime" class="current-time">2026-09-15 00:00:00</span>
+        </div>
+    </nav>
+
+    <!-- 顶部汇总卡片 -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="summary-icon">🗳️</div>
+            <div class="summary-content">
+                <div class="summary-value" id="summaryTotalVotes">0</div>
+                <div class="summary-label">总投票数</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon">👥</div>
+            <div class="summary-content">
+                <div class="summary-value" id="summaryTotalUsers">0</div>
+                <div class="summary-label">用户数</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon">📋</div>
+            <div class="summary-content">
+                <div class="summary-value" id="summaryTotalTopics">0</div>
+                <div class="summary-label">话题数</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon">⏰</div>
+            <div class="summary-content">
+                <div class="summary-value" id="summaryAnalysisTime">--</div>
+                <div class="summary-label">分析时间</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3x2 图表网格 -->
+    <div class="charts-grid">
+        <!-- 第1行 -->
+        <div class="chart-panel">
+            <div class="chart-title">📈 每日投票趋势</div>
+            <div class="chart-body" id="chartDailyVotes"></div>
+        </div>
+        <div class="chart-panel">
+            <div class="chart-title">🏆 热门话题 TOP10</div>
+            <div class="chart-body" id="chartTopicHot"></div>
+        </div>
+        <div class="chart-panel">
+            <div class="chart-title">🥧 话题类型分布</div>
+            <div class="chart-body" id="chartTypeDist"></div>
+        </div>
+        
+        <!-- 第2行 -->
+        <div class="chart-panel">
+            <div class="chart-title">👥 用户活跃度</div>
+            <div class="chart-body" id="chartUserRank"></div>
+        </div>
+        <div class="chart-panel">
+            <div class="chart-title">💬 评论情感分布</div>
+            <div class="chart-body" id="chartSentiment"></div>
+        </div>
+        <div class="chart-panel">
+            <div class="chart-title">⏰ 时段投票分布</div>
+            <div class="chart-body" id="chartHourlyVotes"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/analytics.js"></script>
+</body>
+</html>

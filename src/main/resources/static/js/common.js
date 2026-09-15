@@ -141,7 +141,10 @@ function renderNavbar(activePage = '') {
         <nav class="navbar">
             <div class="container">
                 <div class="navbar-left">
-                    <a href="index.html" class="navbar-brand">📊 投票大厅</a>
+                    <a href="index.html" class="navbar-brand">
+                    <span class="brand-icon">🗳️</span>
+                    <span class="brand-text">投票大厅</span>
+                </a>
                 </div>
                 <div class="navbar-center">
                     <form class="nav-search" onsubmit="handleNavSearch(event)">
@@ -151,6 +154,7 @@ function renderNavbar(activePage = '') {
                 </div>
                 <div class="navbar-right">
                     <a href="create.html" class="btn btn-primary btn-sm nav-create-btn">+ 发起投票</a>
+                    <a href="analytics.html" class="btn btn-outline-primary btn-sm nav-analytics-btn">📊 数据分析</a>
                     ${isLoggedIn ? `
                         <div class="nav-user">
                             <a href="profile.html" class="nav-user-link">
