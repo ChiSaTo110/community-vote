@@ -59,7 +59,7 @@ public class AnalyticsController {
         return result;
     }
 
-    // 4. 话题类型分布（饼图格式 [{name, value}]）
+        // 4. 话题类型分布
     @GetMapping("/type-dist")
     public List<Map<String, Object>> getTypeDist() {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(
@@ -67,7 +67,12 @@ public class AnalyticsController {
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map<String, Object> row : rows) {
             Map<String, Object> item = new HashMap<>();
-            item.put("name", row.get("type_name"));
+            String name = (String) row.get("type_name");
+            // 英文转中文
+            if ("Single".equals(name)) name = "单选题";
+            else if ("Multiple".equals(name)) name = "多选题";
+            else if ("Fill".equals(name)) name = "填空题";
+            item.put("name", name);
             item.put("value", row.get("topic_count"));
             result.add(item);
         }
