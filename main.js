@@ -13,8 +13,12 @@ app.$mount()
 
 // #ifdef VUE3
 import { createSSRApp } from 'vue'
+import { createPinia } from 'pinia'
 export function createApp() {
   const app = createSSRApp(App)
+  // 注册 Pinia，否则页面里调用 useUserStore() 会报
+  // "getActivePinia was called with no active Pinia"
+  app.use(createPinia())
   return {
     app
   }
