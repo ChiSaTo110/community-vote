@@ -35,6 +35,7 @@
       "style": {
         "navigationBarTitleText": "搜索"
       }
+<<<<<<< HEAD
     },
     {
       "path": "pages/profile/profile",
@@ -53,6 +54,8 @@
       "style": {
         "navigationBarTitleText": "我的投票"
       }
+=======
+>>>>>>> origin/feature/request-chart
     }
   ],
   "tabBar": {
