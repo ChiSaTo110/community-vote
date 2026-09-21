@@ -24,6 +24,7 @@ const request = (options) => {
         // 401: token 失效，清除登录态并跳转
         if (statusCode === 401) {
           uni.removeStorageSync('token')
+          uni.removeStorageSync('userInfo')   // 新增，避免 userInfo 残留
           uni.reLaunch({ url: '/pages/login/login' })
           reject(new Error('登录已过期，请重新登录'))
           return
@@ -61,7 +62,6 @@ const request = (options) => {
         resolve(data)
       },
       fail: (err) => {
-        // 后端没启动时最常见的表现，把原始错误码带出来方便排查
         const detail = err && err.errMsg ? err.errMsg : ''
         const isRefused = detail.indexOf('refuse') >= 0 || detail.indexOf('Failed to fetch') >= 0
         const msg = isRefused

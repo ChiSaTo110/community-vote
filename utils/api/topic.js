@@ -1,7 +1,7 @@
-import request from '../request.js'
+import request from '@/utils/request'
 
-// 话题列表（随机推荐）
-export const getTopicList = (params) => request.get('/topics/random', params)
+// 话题列表（分页）
+export const getTopicList = (params) => request.get('/topics', params)
 
 // 热门话题
 export const getHotTopics = (params) => request.get('/topics/hot', params)
