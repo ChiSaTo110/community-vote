@@ -12,7 +12,7 @@
 
 <script setup>
 import { reactive } from 'vue'
-import request from '@/utils/request'
+import { register } from '@/utils/api/auth'
 
 const form = reactive({
   username: '',
@@ -30,7 +30,9 @@ const handleRegister = async () => {
     return
   }
   try {
-    await request.post('/api/auth/register', {
+    // 走统一的 api 模块，路径由 utils/api/auth.js 维护
+    // BASE_URL 已含 /api，这里不能再带 /api 前缀
+    await register({
       username: form.username,
       password: form.password
     })
@@ -39,7 +41,7 @@ const handleRegister = async () => {
       uni.navigateTo({ url: '/pages/login/login' })
     }, 500)
   } catch (e) {
-    uni.showToast({ title: e.message || '注册失败', icon: 'none' })
+    // request.js 内部已经弹过 toast，这里不再重复弹，避免弹两次
   }
 }
 

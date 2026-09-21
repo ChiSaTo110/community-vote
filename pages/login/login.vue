@@ -11,7 +11,7 @@
 
 <script setup>
 import { reactive } from 'vue'
-import request from '@/utils/request'
+import { login } from '@/utils/api/auth'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -26,17 +26,27 @@ const handleLogin = async () => {
     return
   }
   try {
-    const res = await request.post('/api/auth/login', form)
-    // 根据后端实际返回结构调整
-    const data = res.data || res
-    userStore.setToken(data.token)
-    userStore.setUserInfo(data.user || data.userInfo || {})
+    // 走统一的 api 模块；request.js 已解包 {code,msg,data}，这里拿到的就是 data
+    const data = await login({
+      username: form.username,
+      password: form.password
+    })
+    // 后端 /auth/login 返回: { token, userId, username, nickname, avatar }
+    userStore.setLoginData({
+      token: data.token,
+      userInfo: {
+        id: data.userId,
+        username: data.username,
+        nickname: data.nickname,
+        avatar: data.avatar
+      }
+    })
     uni.showToast({ title: '登录成功', icon: 'success' })
     setTimeout(() => {
       uni.switchTab({ url: '/pages/index/index' })
     }, 500)
   } catch (e) {
-    uni.showToast({ title: e.message || '登录失败', icon: 'none' })
+    // request.js 内部已经弹过 toast，这里不再重复弹
   }
 }
 
