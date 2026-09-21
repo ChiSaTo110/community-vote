@@ -1,12 +1,4 @@
 <template>
-  <view>页面占位</view>
-</template>
-
-<script setup>
-</script>
-
-<style scoped>
-</style>
   <view class="search-page">
     <!-- 搜索栏 -->
     <view class="search-bar">
@@ -74,7 +66,7 @@ const doSearch = () => {
   searched.value = true
   searchTopic({ keyword: kw })
     .then(res => {
-      topicList.value = res || []
+ topicList.value = res || []
     })
     .catch(() => {
       topicList.value = []
@@ -91,7 +83,7 @@ const clearKeyword = () => {
 }
 
 const goDetail = (id) => {
-  uni.navigateTo({ url: `/pages/detail/detail?id=${id}` })
+  uni.navigateTo({ url: `/pages/topic/detail?id=${id}` })
 }
 </script>
 
@@ -210,4 +202,3 @@ const goDetail = (id) => {
   color: #999;
 }
 </style>
-

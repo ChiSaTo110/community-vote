@@ -35,7 +35,7 @@
       "style": {
         "navigationBarTitleText": "搜索"
       }
-<<<<<<< HEAD
+
     },
     {
       "path": "pages/profile/profile",
@@ -54,19 +54,23 @@
       "style": {
         "navigationBarTitleText": "我的投票"
       }
-=======
->>>>>>> origin/feature/request-chart
+
+
     }
   ],
   "tabBar": {
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页"
+        "text": "首页",
+        "iconPath": "static/home.png",
+        "selectedIconPath": "static/home-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "个人中心"
+        "text": "个人中心",
+        "iconPath": "static/profile.png",
+        "selectedIconPath": "static/profile-active.png"
       }
     ]
   },
