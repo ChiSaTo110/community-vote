@@ -83,7 +83,7 @@ const clearKeyword = () => {
 }
 
 const goDetail = (id) => {
-  uni.navigateTo({ url: `/pages/detail/detail?id=${id}` })
+  uni.navigateTo({ url: `/pages/topic/detail?id=${id}` })
 }
 </script>
 

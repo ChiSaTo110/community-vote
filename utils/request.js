@@ -24,6 +24,7 @@ const request = (options) => {
         // 401: token 失效，清除登录态并跳转
         if (statusCode === 401) {
           uni.removeStorageSync('token')
+          uni.removeStorageSync('userInfo')   // 新增，避免 userInfo 残留
           uni.reLaunch({ url: '/pages/login/login' })
           reject(new Error('登录已过期，请重新登录'))
           return
@@ -31,12 +32,13 @@ const request = (options) => {
 
         // HTTP 状态码非 2xx
         if (statusCode < 200 || statusCode >= 300) {
+          const httpMsg = data?.msg || data?.message || `请求失败 (HTTP ${statusCode})`
           uni.showToast({
-            title: data?.msg || data?.message || '请求失败',
+            title: httpMsg,
             icon: 'none',
             duration: 2000
           })
-          reject(new Error(data?.msg || '请求失败'))
+          reject(new Error(httpMsg))
           return
         }
 
@@ -59,13 +61,18 @@ const request = (options) => {
         // 兜底：直接返回原始数据
         resolve(data)
       },
-      fail: () => {
+      fail: (err) => {
+        const detail = err && err.errMsg ? err.errMsg : ''
+        const isRefused = detail.indexOf('refuse') >= 0 || detail.indexOf('Failed to fetch') >= 0
+        const msg = isRefused
+          ? '后端服务未启动，请检查 localhost:8080'
+          : '网络连接异常'
         uni.showToast({
-          title: '网络连接异常',
+          title: msg,
           icon: 'none',
-          duration: 2000
+          duration: 2500
         })
-        reject(new Error('网络连接异常'))
+        reject(new Error(msg))
       }
     })
   })
