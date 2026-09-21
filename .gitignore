@@ -8,3 +8,10 @@ src/main/resources/application.properties
 # 忽略编译生成的临时文件
 target/
 *.class
+
+node_modules/
+unpackage/
+dist/
+.DS_Store
+*.log
+
