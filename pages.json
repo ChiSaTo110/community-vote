@@ -11,6 +11,12 @@
       "style": {
         "navigationBarTitleText": "搜索"
       }
+    },
+    {
+      "path": "pages/topic/result",
+      "style": {
+        "navigationBarTitleText": "投票结果"
+      }
     }
   ],
   "globalStyle": {
