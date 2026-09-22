@@ -46,7 +46,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getVoteResult } from '@/utils/api/vote.js'
+import { getVoteResult } from '@/utils/api/vote'
 import { getTopicDetail } from '@/utils/api/topic.js'
 
 const loading = ref(true)

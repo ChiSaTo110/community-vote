@@ -24,8 +24,8 @@
 
     <button class="vote-btn" @click="submitVote">投票</button>
 
-    <!-- 评论区，嵌入 C 的组件 -->
-    <view class="comment-wrap">
+    <!-- 评论区：加 v-if 确保 topicId 有值才渲染 -->
+    <view class="comment-wrap" v-if="topicId">
       <Comment :topic-id="topicId" />
     </view>
   </view>
