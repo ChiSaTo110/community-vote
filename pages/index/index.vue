@@ -1,5 +1,11 @@
 <template>
   <view class="index">
+    <!-- 搜索入口 -->
+    <view class="search-entry" @click="goSearch">
+      <text class="search-icon">🔍</text>
+      <text class="search-text">搜索投票话题</text>
+    </view>
+
     <view v-if="loading" class="loading">加载中...</view>
     <view v-else-if="topics.length === 0" class="empty">暂无话题</view>
     <view v-else class="list">
@@ -44,11 +50,29 @@ const goDetail = (id) => {
   uni.navigateTo({ url: `/pages/topic/detail?id=${id}` })
 }
 
+// 新增：跳转搜索页
+const goSearch = () => {
+  uni.navigateTo({ url: '/pages/search/search' })
+}
+
 onMounted(loadTopics)
 </script>
 
 <style scoped>
 .index { padding: 20rpx; }
+
+/* 新增搜索栏样式 */
+.search-entry {
+  display: flex;
+  align-items: center;
+  background: #f0f0f0;
+  padding: 20rpx 30rpx;
+  border-radius: 36rpx;
+  margin-bottom: 30rpx;
+}
+.search-icon { font-size: 28rpx; margin-right: 12rpx; }
+.search-text { font-size: 28rpx; color: #999; }
+
 .loading, .empty { text-align: center; padding: 60rpx; color: #999; }
 .list { display: flex; flex-direction: column; gap: 20rpx; }
 .topic-item {
