@@ -9,6 +9,7 @@
           class="search-input"
           placeholder="搜索投票话题"
           confirm-type="search"
+          @input="onInput"
           @confirm="doSearch"
         />
         <text v-if="keyword" class="clear-btn" @click="clearKeyword">✕</text>
@@ -55,6 +56,20 @@ const keyword = ref('')
 const topicList = ref([])
 const loading = ref(false)
 const searched = ref(false)
+let debounceTimer = null
+
+// 输入防抖：停止输入 500ms 后自动搜索
+const onInput = () => {
+  clearTimeout(debounceTimer)
+  if (!keyword.value.trim()) {
+    topicList.value = []
+    searched.value = false
+    return
+  }
+  debounceTimer = setTimeout(() => {
+    doSearch()
+  }, 500)
+}
 
 const doSearch = () => {
   const kw = keyword.value.trim()
@@ -78,12 +93,13 @@ const doSearch = () => {
 
 const clearKeyword = () => {
   keyword.value = ''
+  clearTimeout(debounceTimer)
   topicList.value = []
   searched.value = false
 }
 
 const goDetail = (id) => {
-  uni.navigateTo({ url: `/pages/topic/detail?id=${id}` })
+  uni.navigateTo({ url: '/pages/topic/detail?id=' + id })
 }
 </script>
 
