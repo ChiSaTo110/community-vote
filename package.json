@@ -1,0 +1,9 @@
+{
+    "id": "h-guide",
+    "name": "新功能引导遮罩指示",
+    "version": "1.0.0",
+    "description": "简单实现新手引导，新功能引导遮罩指示功能",
+    "keywords": [
+        "uni-app"
+    ]
+}
