@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 线上投票调研系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-logo">📊</div>
+            <h1 class="auth-title">创建账号</h1>
+            <p class="auth-subtitle">加入投票大厅，表达你的观点</p>
+
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="username" placeholder="请输入用户名（3-20位）" required minlength="3" maxlength="20" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">昵称</label>
+                    <input type="text" class="form-control" id="nickname" placeholder="请输入昵称（显示在个人中心）" required maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" class="form-control" id="email" placeholder="请输入邮箱（选填）" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" id="password" placeholder="请输入密码（至少6位）" required minlength="6" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入密码" required minlength="6" autocomplete="new-password">
+                </div>
+                <button type="submit" class="auth-submit" id="submitBtn">注 册</button>
+            </form>
+
+            <div class="auth-footer">
+                已有账号？<a href="login.html">去登录</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        renderNavbar();
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const username = document.getElementById('username').value.trim();
+            const nickname = document.getElementById('nickname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (username.length < 3) {
+                showToast('用户名至少3位', 'warning');
+                return;
+            }
+            if (!nickname) {
+                showToast('请输入昵称', 'warning');
+                return;
+            }
+            if (password.length < 6) {
+                showToast('密码至少6位', 'warning');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showToast('两次输入的密码不一致', 'warning');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '注册中...';
+
+            AuthAPI.register(username, password, nickname, email).then(res => {
+                if (res.code === 200 || res.success || (res.msg && res.msg.includes('成功'))) {
+                    showToast('注册成功，请登录', 'success');
+                    setTimeout(() => navigateTo('login.html'), 1000);
+                } else {
+                    showToast(res.msg || res.message || '注册失败', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '注 册';
+                }
+            }).catch(err => {
+                console.error(err);
+                const msg = err.response?.data?.msg || err.response?.data?.message || '注册失败，用户名可能已存在';
+                showToast(msg, 'error');
+                btn.disabled = false;
+                btn.textContent = '注 册';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,9 +1,27 @@
 {
   "pages": [
     {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/register/register",
+      "style": {
+        "navigationBarTitleText": "注册"
+      }
+    },
+    {
       "path": "pages/index/index",
       "style": {
         "navigationBarTitleText": "首页"
+      }
+    },
+    {
+      "path": "pages/topic/detail",
+      "style": {
+        "navigationBarTitleText": "话题详情"
       }
     },
     {
@@ -11,24 +29,58 @@
       "style": {
         "navigationBarTitleText": "搜索"
       }
+
+
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationBarTitleText": "个人中心"
+      }
+    },
+    {
+      "path": "pages/profile/my-topics",
+      "style": {
+        "navigationBarTitleText": "我的话题"
+      }
+    },
+    {
+      "path": "pages/profile/my-votes",
+      "style": {
+        "navigationBarTitleText": "我的投票"
+      }
+
+
+
     },
     {
       "path": "pages/topic/result",
       "style": {
         "navigationBarTitleText": "投票结果"
       }
+
     }
   ],
+  "tabBar": {
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/home.png",
+        "selectedIconPath": "static/home-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "个人中心",
+        "iconPath": "static/profile.png",
+        "selectedIconPath": "static/profile-active.png"
+      }
+    ]
+  },
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "社区投票",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
-  },
-  "uniIdRouter": {},
-  "easycom": {
-    "autoscan": true
   }
 }
-
-

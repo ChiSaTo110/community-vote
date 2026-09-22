@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发起投票 - 线上投票调研系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="container-narrow py-5">
+        <h2 class="text-center mb-4">发起新投票</h2>
+        <div class="card">
+            <div class="card-body">
+                <form id="createForm">
+                    <!-- 标题 -->
+                    <div class="mb-3">
+                        <label class="form-label">投票标题 <span style="color:var(--danger)">*</span></label>
+                        <input type="text" class="form-control" id="title" placeholder="请输入投票标题，例如：你最喜欢的编程语言是？" maxlength="200" required>
+                    </div>
+
+                    <!-- 描述 -->
+                    <div class="mb-3">
+                        <label class="form-label">投票描述（可选）</label>
+                        <textarea class="form-control" id="description" placeholder="补充说明投票背景、规则等信息" rows="2"></textarea>
+                    </div>
+
+                    <!-- 题型选择 -->
+                    <div class="mb-3">
+                        <label class="form-label">题型 <span style="color:var(--danger)">*</span></label>
+                        <div class="type-cards" id="typeCards">
+                            <div class="type-card active" data-type="1">
+                                <div class="type-card-icon">◉</div>
+                                <div class="type-card-name">单选题</div>
+                                <div class="type-card-desc">只能选择一个选项</div>
+                            </div>
+                            <div class="type-card" data-type="2">
+                                <div class="type-card-icon">☑</div>
+                                <div class="type-card-name">多选题</div>
+                                <div class="type-card-desc">可选择多个选项</div>
+                            </div>
+                            <div class="type-card" data-type="3">
+                                <div class="type-card-icon">✎</div>
+                                <div class="type-card-name">填空题</div>
+                                <div class="type-card-desc">用户填写文字内容</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 选项列表 -->
+                    <div class="mb-4" id="optionsSection">
+                        <label class="form-label">投票选项 <span style="color:var(--danger)">*</span></label>
+                        <div id="optionList">
+                            <div class="option-item">
+                                <input type="text" class="form-control option-input" placeholder="选项 1" maxlength="100" required>
+                                <button type="button" class="btn btn-outline-danger btn-del del-btn">✕</button>
+                            </div>
+                            <div class="option-item">
+                                <input type="text" class="form-control option-input" placeholder="选项 2" maxlength="100" required>
+                                <button type="button" class="btn btn-outline-danger btn-del del-btn">✕</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-block mt-2" id="addOptionBtn">+ 添加选项</button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn">发起投票</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>线上投票调研系统 · 软件项目综合实践</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        renderNavbar('create');
+
+        let currentType = 1;
+
+        // 题型切换
+        document.getElementById('typeCards').addEventListener('click', e => {
+            const card = e.target.closest('.type-card');
+            if (!card) return;
+            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            currentType = Number(card.dataset.type);
+            document.getElementById('optionsSection').style.display = currentType === 3 ? 'none' : 'block';
+        });
+
+        // 添加选项
+        document.getElementById('addOptionBtn').addEventListener('click', () => {
+            const list = document.getElementById('optionList');
+            const count = list.querySelectorAll('.option-item').length + 1;
+            const item = document.createElement('div');
+            item.className = 'option-item';
+            item.innerHTML = `
+                <input type="text" class="form-control option-input" placeholder="选项 ${count}" maxlength="100" required>
+                <button type="button" class="btn btn-outline-danger btn-del del-btn">✕</button>
+            `;
+            list.appendChild(item);
+        });
+
+        // 删除选项
+        document.getElementById('optionList').addEventListener('click', e => {
+            if (!e.target.classList.contains('del-btn')) return;
+            const items = document.querySelectorAll('.option-item');
+            if (items.length <= 2) {
+                showToast('至少保留 2 个选项', 'warning');
+                return;
+            }
+            e.target.closest('.option-item').remove();
+            document.querySelectorAll('.option-input').forEach((inp, i) => {
+                inp.placeholder = `选项 ${i + 1}`;
+            });
+        });
+
+        // 提交创建
+        document.getElementById('createForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '创建中...';
+
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+
+            let options = [];
+            if (currentType !== 3) {
+                options = Array.from(document.querySelectorAll('.option-input'))
+                    .map(inp => inp.value.trim())
+                    .filter(v => v);
+                if (options.length < 2) {
+                    showToast('请至少填写 2 个有效选项', 'warning');
+                    btn.disabled = false;
+                    btn.textContent = '发起投票';
+                    return;
+                }
+            }
+
+            TopicAPI.create({ title, description, type: currentType, options })
+                .then(res => {
+                    if (res.code === 200) {
+                        showToast('投票创建成功！', 'success');
+                        // C-10：创建成功后跳转首页
+                        setTimeout(() => navigateTo('index.html'), 1000);
+                    } else {
+                        showToast(res.msg || '创建失败', 'error');
+                        btn.disabled = false;
+                        btn.textContent = '发起投票';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('创建失败，请检查网络或后端服务', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '发起投票';
+                });
+        });
+    </script>
+</body>
+</html>

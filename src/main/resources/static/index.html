@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投票大厅 - 线上投票调研系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <!-- 三栏布局：左导航 + 中内容 + 右侧边栏 -->
+    <div class="tieba-layout">
+        <!-- 左侧边栏：导航入口 -->
+        <aside class="tieba-left-sidebar">
+            <!-- 发起投票大按钮 -->
+            <div class="left-create-card">
+                <div class="left-create-icon">📝</div>
+                <div class="left-create-title">发起新投票</div>
+                <div class="left-create-desc">创建你的专属话题</div>
+                <button class="btn btn-primary btn-sm w-100 mt-2" onclick="navigateTo('create.html')">立即创建</button>
+            </div>
+
+            <div class="left-sidebar-divider"></div>
+
+            <div class="left-nav-item active" onclick="navigateTo('index.html')">
+                <span class="left-nav-icon">🏠</span>
+                <span>首页</span>
+            </div>
+            <div class="left-nav-item" onclick="requireLogin() && navigateTo('profile.html')">
+                <span class="left-nav-icon">👤</span>
+                <span>我的主页</span>
+            </div>
+            <div class="left-nav-item" onclick="navigateTo('analytics.html')">
+                <span class="left-nav-icon">📊</span>
+                <span>数据分析</span>
+            </div>
+            
+            <div class="left-sidebar-divider"></div>
+            
+            <div class="left-sidebar-title">话题分类</div>
+            <div class="left-nav-item" onclick="loadRandomTopics()">
+                <span class="left-nav-icon">🔥</span>
+                <span>推荐话题</span>
+            </div>
+            <div class="left-nav-item" onclick="navigateTo('search.html?keyword=单选')">
+                <span class="left-nav-icon">◉</span>
+                <span>单选投票</span>
+            </div>
+            <div class="left-nav-item" onclick="navigateTo('search.html?keyword=多选')">
+                <span class="left-nav-icon">☑</span>
+                <span>多选投票</span>
+            </div>
+            <div class="left-nav-item" onclick="navigateTo('search.html?keyword=填空')">
+                <span class="left-nav-icon">✎</span>
+                <span>填空投票</span>
+            </div>
+
+            <div class="left-sidebar-divider"></div>
+
+            <!-- 热门标签 -->
+            <div class="left-sidebar-title">热门标签</div>
+            <div class="left-tag-list">
+                <span class="left-tag" onclick="navigateTo('search.html?keyword=生活')">生活</span>
+                <span class="left-tag" onclick="navigateTo('search.html?keyword=科技')">科技</span>
+                <span class="left-tag" onclick="navigateTo('search.html?keyword=娱乐')">娱乐</span>
+                <span class="left-tag" onclick="navigateTo('search.html?keyword=教育')">教育</span>
+                <span class="left-tag" onclick="navigateTo('search.html?keyword=美食')">美食</span>
+                <span class="left-tag" onclick="navigateTo('search.html?keyword=旅游')">旅游</span>
+                <span class="left-tag" onclick="navigateTo('search.html?keyword=游戏')">游戏</span>
+                <span class="left-tag" onclick="navigateTo('search.html?keyword=体育')">体育</span>
+            </div>
+        </aside>
+
+        <!-- 中间主内容区：话题流 -->
+        <main class="tieba-main-content">
+            <div class="tieba-main-header">
+                <h2>推荐话题</h2>
+                <button class="btn btn-sm btn-outline-primary" onclick="loadRandomTopics()">🔄 换一批</button>
+            </div>
+
+            <div id="topicList" class="tieba-post-list">
+                <!-- 加载中 -->
+                <div class="text-center py-5" id="topicLoading">
+                    <div class="spinner" style="margin:0 auto 12px;"></div>
+                    <p class="text-muted">加载话题中...</p>
+                </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div id="topicEmpty" class="empty-state" style="display:none;">
+                <div class="empty-state-icon">📭</div>
+                <p>暂无话题</p>
+                <p class="text-small">成为第一个发起投票的人吧！</p>
+                <a href="create.html" class="btn btn-primary mt-3">+ 立即创建投票</a>
+            </div>
+        </main>
+
+        <!-- 右侧边栏 -->
+        <aside class="tieba-right-sidebar">
+            <!-- 热门话题 -->
+            <div class="tieba-card">
+                <div class="tieba-card-header">🏆 热门话题</div>
+                <div class="tieba-card-body" id="hotList">
+                    <div class="text-center py-4 text-muted">
+                        <div class="spinner" style="margin:0 auto 10px;"></div>
+                        <span class="text-small">加载中...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速入口 -->
+            <div class="tieba-card">
+                <div class="tieba-card-header">⚡ 快速入口</div>
+                <div class="tieba-card-body">
+                    <a href="create.html" class="quick-entry-item">
+                        <span class="quick-entry-icon">📝</span>
+                        <span>发起新投票</span>
+                    </a>
+                    <a href="search.html" class="quick-entry-item">
+                        <span class="quick-entry-icon">🔍</span>
+                        <span>搜索话题</span>
+                    </a>
+                    <a href="analytics.html" class="quick-entry-item">
+                        <span class="quick-entry-icon">📊</span>
+                        <span>数据分析大屏</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="footer">
+        <p>线上投票调研系统 · 软件项目综合实践</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        // 渲染导航栏
+        renderNavbar('home');
+
+        // 加载随机话题
+        function loadRandomTopics() {
+            const listEl = document.getElementById('topicList');
+            const emptyEl = document.getElementById('topicEmpty');
+            listEl.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner" style="margin:0 auto 12px;"></div>
+                    <p class="text-muted">加载话题中...</p>
+                </div>
+            `;
+            emptyEl.style.display = 'none';
+
+            TopicAPI.getRandom().then(res => {
+                const topics = res.data || res || [];
+                if (!topics || topics.length === 0) {
+                    listEl.innerHTML = '';
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+                renderTopicList(topics);
+            }).catch(() => {
+                listEl.innerHTML = '';
+                emptyEl.style.display = 'block';
+                emptyEl.querySelector('p').textContent = '话题接口暂未开放';
+            });
+        }
+
+        // 渲染话题卡片（贴吧风格）
+        function renderTopicList(topics) {
+            const listEl = document.getElementById('topicList');
+            listEl.innerHTML = topics.map(t => {
+                const typeInfo = TOPIC_TYPE[t.type] || { name: '未知', icon: '?' };
+                const nickname = t.creatorNickname || '匿名用户';
+                const username = t.creatorUsername || 'anonymous';
+                const avatar = t.creatorAvatar;
+                const avatarHtml = avatar
+                    ? `<img src="${avatar}" class="tieba-avatar" alt="avatar">`
+                    : `<div class="tieba-avatar">${nickname.charAt(0).toUpperCase()}</div>`;
+
+                return `
+                    <div class="tieba-post-card" onclick="navigateTo('vote.html?id=${t.id}')">
+                        <!-- 左侧头像 -->
+                        <div class="tieba-post-avatar">
+                            ${avatarHtml}
+                        </div>
+                        
+                        <!-- 右侧内容 -->
+                        <div class="tieba-post-content">
+                            <!-- 顶部：用户信息 -->
+                            <div class="tieba-post-header">
+                                <span class="tieba-post-author">${escapeHtml(nickname)}</span>
+                                <span class="tieba-post-badge">${typeInfo.icon} ${typeInfo.name}</span>
+                                <span class="tieba-post-time">${formatTimeAgo(t.createdAt)}</span>
+                            </div>
+                            
+                            <!-- 中间：标题和描述 -->
+                            <div class="tieba-post-title">${escapeHtml(t.title)}</div>
+                            ${t.description ? `<div class="tieba-post-desc">${escapeHtml(t.description)}</div>` : ''}
+                            
+                            <!-- 底部：互动数据 -->
+                            <div class="tieba-post-stats" onclick="event.stopPropagation()">
+                                <span class="tieba-stat-item">
+                                    👥 ${t.voteCount || 0} 人参与
+                                </span>
+                                <span class="tieba-stat-item">
+                                    💬 ${t.commentCount || 0} 评论
+                                </span>
+                                <span class="tieba-stat-item">
+                                    📋 ${t.optionCount || 0} 个选项
+                                </span>
+                                ${t.status === 2 ? '<span class="tieba-stat-item tieba-stat-ended">已结束</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 加载热门话题
+        function loadHotTopics() {
+            const hotEl = document.getElementById('hotList');
+            TopicAPI.getHot().then(res => {
+                const list = res.data || res || [];
+                if (!list || list.length === 0) {
+                    hotEl.innerHTML = '<div class="text-center py-4 text-muted text-small">暂无热门话题</div>';
+                    return;
+                }
+                hotEl.innerHTML = list.slice(0, 10).map((t, i) => `
+                    <div class="hot-topic-item" onclick="navigateTo('vote.html?id=${t.id}')">
+                        <div class="hot-rank">${i + 1}</div>
+                        <div style="flex:1; min-width:0;">
+                            <div class="hot-topic-title">${escapeHtml(t.title)}</div>
+                            <div class="hot-topic-count">${t.voteCount || t.participantCount || 0} 人参与</div>
+                        </div>
+                    </div>
+                `).join('');
+            }).catch(() => {
+                hotEl.innerHTML = '<div class="text-center py-4 text-muted text-small">热门话题接口暂未开放</div>';
+            });
+        }
+
+        // 初始化
+        loadRandomTopics();
+        loadHotTopics();
+    </script>
+</body>
+</html>

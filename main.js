@@ -13,10 +13,15 @@ app.$mount()
 
 // #ifdef VUE3
 import { createSSRApp } from 'vue'
+import * as Pinia from 'pinia'
 export function createApp() {
   const app = createSSRApp(App)
+  // 注册 Pinia，否则页面里调用 useUserStore() 会报
+  // "getActivePinia was called with no active Pinia"
+  app.use(Pinia.createPinia())
   return {
-    app
+    app,
+    Pinia // 小程序端状态恢复需要，勿删
   }
 }
 // #endif

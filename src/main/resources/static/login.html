@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 线上投票调研系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-logo">📊</div>
+            <h1 class="auth-title">欢迎回来</h1>
+            <p class="auth-subtitle">登录后参与投票、创建话题</p>
+
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="username" placeholder="请输入用户名" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" id="password" placeholder="请输入密码" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="auth-submit" id="submitBtn">登 录</button>
+            </form>
+
+            <div class="auth-footer">
+                还没有账号？<a href="register.html">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        renderNavbar();
+
+        // 如果已登录，直接跳首页
+        if (Auth.isLoggedIn()) {
+            navigateTo('index.html');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showToast('请输入用户名和密码', 'warning');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '登录中...';
+
+            AuthAPI.login(username, password).then(res => {
+                if (res.code === 200 || res.token) {
+                    const token = res.token || (res.data && res.data.token);
+                    const user = res.user || (res.data && res.data.user) || { username };
+                    if (token) {
+                        Auth.setLogin(token, user);
+                        showToast('登录成功', 'success');
+                        setTimeout(() => navigateTo('index.html'), 800);
+                    } else {
+                        showToast('登录响应异常', 'error');
+                        btn.disabled = false;
+                        btn.textContent = '登 录';
+                    }
+                } else {
+                    showToast(res.msg || res.message || '登录失败', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '登 录';
+                }
+            }).catch(err => {
+                console.error(err);
+                const msg = err.response?.data?.msg || err.response?.data?.message || '登录失败，请检查用户名和密码';
+                showToast(msg, 'error');
+                btn.disabled = false;
+                btn.textContent = '登 录';
+            });
+        });
+    </script>
+</body>
+</html>

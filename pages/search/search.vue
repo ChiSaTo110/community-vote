@@ -81,7 +81,7 @@ const doSearch = () => {
   searched.value = true
   searchTopic({ keyword: kw })
     .then(res => {
-      topicList.value = res || []
+ topicList.value = res || []
     })
     .catch(() => {
       topicList.value = []
