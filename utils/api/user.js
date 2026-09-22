@@ -1,13 +1,13 @@
-import request from '../request.js'
+import request from '@/utils/request'
 
-// 更新个人信息（后端只接收 nickname / avatar / email 三个可选字段）
-export const updateUserInfo = (data) => request.put('/users/me', data)
+// 获取当前用户信息
+export const getProfile = () => request.get('/users/me')
 
-// 获取个人信息
-export const getUserInfo = () => request.get('/users/me')
+// 更新用户信息
+export const updateProfile = (data) => request.put('/users/me', data)
 
-// 我的话题列表
-export const getMyTopics = (params) => request.get('/users/me/topics', params)
+// 我的话题
+export const getMyTopics = () => request.get('/users/me/topics')
 
-// 我的投票记录
-export const getMyVotes = (params) => request.get('/users/me/votes', params)
+// 我的投票
+export const getMyVotes = () => request.get('/users/me/votes')

@@ -1,12 +1,11 @@
 <template>
   <view class="comment">
     <view class="header">
-      <text class="title">评论</text>
+      <text class="title">💬 评论</text>
       <text class="count">{{ list.length }}</text>
     </view>
 
     <view v-if="loading" class="tip">加载中...</view>
-
     <view v-else-if="list.length === 0" class="empty">还没有评论，来说两句吧</view>
 
     <view v-else class="list">
@@ -36,10 +35,7 @@ import { ref, computed, onMounted } from 'vue'
 import { getCommentList, addComment } from '@/utils/api/comment'
 
 const props = defineProps({
-  topicId: {
-    type: [Number, String],
-    required: true
-  }
+  topicId: { type: [Number, String], required: true }
 })
 
 const list = ref([])
@@ -49,17 +45,16 @@ const sending = ref(false)
 
 const canSend = computed(() => !sending.value && text.value.trim().length > 0)
 
-// 后端 Comment 只返回 userId，不带昵称，所以这里只能展示 userId
 const authorText = (c) => {
+  if (c.nickname) return c.nickname
   if (!c.userId) return '匿名用户'
   return `用户 ${c.userId}`
 }
 
-// 后端 AI 情感标注：POSITIVE 正面 / NEGATIVE 负面 / NEUTRAL 中性
 const sentimentMap = {
-  POSITIVE: { text: '正面', cls: 'positive' },
-  NEGATIVE: { text: '负面', cls: 'negative' },
-  NEUTRAL: { text: '中性', cls: 'neutral' }
+  POSITIVE: { text: '😊 正面', cls: 'positive' },
+  NEGATIVE: { text: '😞 负面', cls: 'negative' },
+  NEUTRAL: { text: '😐 中性', cls: 'neutral' }
 }
 
 const formatTime = (t) => {
@@ -95,107 +90,74 @@ const handleSend = async () => {
   }
 }
 
-// 父页面需要手动刷新时可通过 ref 调用
 defineExpose({ load })
-
 onMounted(load)
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@import '@/styles/theme.scss';
+
 .comment {
-  background-color: #ffffff;
-  border-radius: 16rpx;
+  background: #fff;
+  border-radius: $card-radius;
   padding: 28rpx;
 }
 
 .header {
   display: flex;
-  flex-direction: row;
   align-items: center;
   margin-bottom: 20rpx;
 }
-
-.title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #222222;
-}
-
+.title { font-size: 32rpx; font-weight: bold; color: $text-main; }
 .count {
-  font-size: 26rpx;
-  color: #999999;
+  font-size: 24rpx;
+  color: #fff;
+  background: $primary;
+  padding: 2rpx 14rpx;
+  border-radius: 20rpx;
   margin-left: 12rpx;
 }
 
-.tip,
-.empty {
-  padding: 40rpx 0;
+.tip, .empty {
+  padding: 60rpx 0;
   text-align: center;
   font-size: 26rpx;
-  color: #aaaaaa;
+  color: $text-light;
 }
 
-.item {
-  padding: 22rpx 0;
-  border-bottom: 1rpx solid #f2f2f2;
-}
-
-.item:last-child {
-  border-bottom: none;
-}
+.item { padding: 24rpx 0; border-bottom: 1rpx solid #f2f2f2; }
+.item:last-child { border-bottom: none; }
 
 .item-head {
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 12rpx;
 }
 
-.author {
-  font-size: 26rpx;
-  color: #666666;
-}
+.author { font-size: 26rpx; color: $text-sub; font-weight: 500; }
 
 .sentiment {
   font-size: 20rpx;
   padding: 4rpx 14rpx;
   border-radius: 18rpx;
 }
-
-.positive {
-  color: #19be6b;
-  background-color: #eaf7ee;
-}
-
-.negative {
-  color: #e54d42;
-  background-color: #fdeceb;
-}
-
-.neutral {
-  color: #999999;
-  background-color: #f2f2f2;
-}
+.positive { color: #19be6b; background: #eaf7ee; }
+.negative { color: #e54d42; background: #fdeceb; }
+.neutral { color: $text-light; background: #f2f2f2; }
 
 .content {
   display: block;
   font-size: 28rpx;
-  color: #333333;
-  margin-top: 14rpx;
+  color: $text-main;
   line-height: 1.6;
   word-break: break-all;
+  margin-bottom: 12rpx;
 }
-
-.time {
-  display: block;
-  font-size: 22rpx;
-  color: #bbbbbb;
-  margin-top: 12rpx;
-}
+.time { font-size: 22rpx; color: $text-light; }
 
 .input-bar {
   display: flex;
-  flex-direction: row;
   align-items: center;
   margin-top: 24rpx;
   padding-top: 24rpx;
@@ -204,27 +166,23 @@ onMounted(load)
 
 .input {
   flex: 1;
-  height: 68rpx;
-  background-color: #f5f6f8;
-  border-radius: 34rpx;
+  height: 72rpx;
+  background: #f5f6f8;
+  border-radius: 36rpx;
   padding: 0 28rpx;
   font-size: 28rpx;
-  box-sizing: border-box;
 }
 
 .send {
   flex-shrink: 0;
   margin-left: 20rpx;
-  padding: 0 28rpx;
-  height: 68rpx;
-  line-height: 68rpx;
+  padding: 0 32rpx;
+  height: 72rpx;
+  line-height: 72rpx;
   font-size: 28rpx;
-  color: #ffffff;
-  background-color: #2979ff;
-  border-radius: 34rpx;
+  color: #fff;
+  background: $primary;
+  border-radius: 36rpx;
 }
-
-.disabled {
-  background-color: #c8d8f5;
-}
+.disabled { background: #c8d8f5; }
 </style>

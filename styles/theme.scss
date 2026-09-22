@@ -1,0 +1,78 @@
+/* ==================== 主题变量 ==================== */
+$primary: #4A90D9;
+$primary-light: #eaf3fc;
+$success: #36CFC9;
+$success-light: #e6faf8;
+$warning: #F7BA1E;
+$danger: #F56C6C;
+$purple: #722ED1;
+
+$text-main: #222222;
+$text-sub: #666666;
+$text-light: #999999;
+$text-placeholder: #bbbbbb;
+
+$bg-page: #f5f6f8;
+$bg-white: #ffffff;
+
+$card-radius: 20rpx;
+$card-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+
+/* ==================== 通用卡片 ==================== */
+.card {
+  background: $bg-white;
+  border-radius: $card-radius;
+  box-shadow: $card-shadow;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+/* ==================== 通用标签 ==================== */
+.badge {
+  display: inline-block;
+  font-size: 20rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  background: $primary-light;
+  color: $primary;
+  margin-right: 12rpx;
+}
+.badge-success {
+  background: $success-light;
+  color: $success;
+}
+.badge-multi {
+  background: #f0f0ff;
+  color: $purple;
+}
+.badge-secondary {
+  background: #f0f0f0;
+  color: $text-light;
+}
+
+/* ==================== 通用头像 ==================== */
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $primary, $success);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ==================== 通用按钮 ==================== */
+.btn-primary {
+  background: linear-gradient(135deg, $primary, #5da9e9);
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border: none;
+  box-shadow: 0 8rpx 20rpx rgba(74, 144, 217, 0.3);
+}

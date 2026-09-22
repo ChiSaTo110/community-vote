@@ -5,7 +5,7 @@ const BASE_URL = '/api'
 // #ifndef H5
 const BASE_URL = 'http://localhost:8080/api'
 // #endif
-const TIMEOUT = 10000
+const TIMEOUT = 60000
 
 const request = (options) => {
   return new Promise((resolve, reject) => {

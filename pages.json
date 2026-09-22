@@ -13,6 +13,12 @@
       }
     },
     {
+      "path": "pages/create/create",
+      "style": {
+        "navigationBarTitleText": "发起投票"
+      }
+    },
+    {
       "path": "pages/index/index",
       "style": {
         "navigationBarTitleText": "首页"
@@ -29,8 +35,6 @@
       "style": {
         "navigationBarTitleText": "搜索"
       }
-
-
     },
     {
       "path": "pages/profile/profile",
@@ -49,16 +53,12 @@
       "style": {
         "navigationBarTitleText": "我的投票"
       }
-
-
-
     },
     {
       "path": "pages/topic/result",
       "style": {
         "navigationBarTitleText": "投票结果"
       }
-
     }
   ],
   "tabBar": {
