@@ -23,6 +23,11 @@
     </view>
 
     <button class="vote-btn" @click="submitVote">投票</button>
+
+    <!-- 评论区，嵌入 C 的组件 -->
+    <view class="comment-wrap">
+      <Comment :topic-id="topicId" />
+    </view>
   </view>
 </template>
 
@@ -31,6 +36,7 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getTopicDetail } from '@/utils/api/topic'
 import request from '@/utils/request'
+import Comment from '@/components/comment/comment.vue'
 
 const topic = ref({ options: [] })
 const selectedId = ref(null)
@@ -59,9 +65,7 @@ const submitVote = async () => {
     setTimeout(() => {
       uni.navigateTo({ url: `/pages/topic/result?id=${topicId.value}` })
     }, 500)
-  } catch (e) {
-    // request.js 内部已弹 toast
-  }
+  } catch (e) {}
 }
 </script>
 
@@ -79,4 +83,5 @@ const submitVote = async () => {
 }
 .option.selected { border-color: #4a90d9; background: #f0f8ff; }
 .vote-btn { margin-top: 40rpx; }
+.comment-wrap { margin-top: 40rpx; }
 </style>
